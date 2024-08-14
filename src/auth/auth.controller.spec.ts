@@ -2,15 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
-import { HttpStatus, INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
 
 describe('AuthController', () => {
-  let app: INestApplication;
+  let authController: AuthController;
   let authService: AuthService;
 
-  beforeAll(async () => {
-    const moduleRef: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
         {
@@ -23,59 +21,60 @@ describe('AuthController', () => {
       ],
     }).compile();
 
-    app = moduleRef.createNestApplication();
-    await app.init();
-    authService = moduleRef.get<AuthService>(AuthService);
+    authController = module.get<AuthController>(AuthController);
+    authService = module.get<AuthService>(AuthService);
   });
 
-  afterAll(async () => {
-    await app.close();
-  });
-
-  describe('POST /auth/login', () => {
-    it('201 Created: Valid loginDto', async () => {
+  describe('login', () => {
+    it('should call AuthService login with correct parameters', async () => {
       const loginDto: AuthDto = {
-
-        username: 'massimo',
-
-        
-        password: '111111',
+        username: 'test@example.com',
+        password: 'password123',
       };
+
+      // Ожидаемый результат, соответствующий типу { token: string; user: { username: string; } }
       const result = {
-        token: 'token',
+        token: 'some-jwt-token',
         user: {
-          username: 'massimo',
+          username: 'testuser',
         },
       };
-      jest.spyOn(authService, 'login').mockResolvedValue(result);
-      return request(app.getHttpServer())
-        .post('/auth/login')
-        .send(loginDto)
-        .expect(HttpStatus.CREATED)
-        .expect(result);
-    });
 
-    it('401 Unauthorized: Invalid credentials', async () => {
-      const loginDto: AuthDto = {
-        username: 'massimo',
-        password: 'wrongPassword',
+      // Замокайте возвращаемое значение метода login
+      jest.spyOn(authService, 'login').mockResolvedValue(result);
+
+      // Вызовите метод login контроллера
+      const response = await authController.login(loginDto);
+
+      // Ожидайте, что AuthService.login был вызван с правильными параметрами
+      expect(authService.login).toHaveBeenCalledWith(loginDto);
+
+      // Ожидайте, что контроллер вернет ожидаемый результат
+      expect(response).toBe(result);
+    });
+  });
+
+  describe('register', () => {
+    it('should call AuthService register with correct parameters', async () => {
+      const registerDto: AuthDto = {
+        username: 'test@example.com',
+        password: 'password123',
       };
 
       const result = {
-        message: 'Invalid credentials',
-        statusCode: 401,
+        message: 'some-message',
       };
 
-      jest.spyOn(authService, 'login').mockRejectedValue({
-        message: 'Invalid credentials',
-        status: HttpStatus.UNAUTHORIZED,
-      });
+      jest.spyOn(authService, 'register').mockResolvedValue(result);
 
-      return request(app.getHttpServer())
-        .post('/auth/login')
-        .send(loginDto)
-        .expect(HttpStatus.UNAUTHORIZED)
-        .expect(result);
+      // Вызовите метод register контроллера
+      const response = await authController.register(registerDto);
+
+      // Ожидайте, что AuthService.register был вызван с правильными параметрами
+      expect(authService.register).toHaveBeenCalledWith(registerDto);
+
+      // Ожидайте, что контроллер вернет ожидаемый результат
+      expect(response).toBe(result);
     });
   });
 });

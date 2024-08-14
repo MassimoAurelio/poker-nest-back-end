@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { CreateRoomDto } from './dto/create-room.dto';
-import { UpdateRoomDto } from './dto/update-room.dto';
-
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { RoomDto } from './dto/room.dto';
+import { PrismaService } from 'prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class RoomService {
-  create(createRoomDto: CreateRoomDto) {
-    return 'This action adds a new room';
+  constructor(private prisma: PrismaService) {}
+
+  async createRoom(roomDto: RoomDto) {
+    const { name, password } = roomDto;
+    const existingRoom = await this.prisma.rooms.findUnique({
+      where: { name },
+    });
+
+    if (existingRoom) {
+      return new BadRequestException('A room with that name already exists');
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newRoom = await this.prisma.rooms.create({
+      data: { name, password: hashedPassword, v: 0 },
+    });
+    return { roomId: newRoom.id };
   }
 
-  findAll() {
-    return `This action returns all room`;
-  }
+  async enterRoom(roomDto: RoomDto) {
+    const { name, password } = roomDto;
+    const room = await this.prisma.rooms.findUnique({ where: { name } });
+    if (!room) {
+      return new BadRequestException('A room with that name not found');
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} room`;
-  }
-
-  update(id: number, updateRoomDto: UpdateRoomDto) {
-    return `This action updates a #${id} room`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} room`;
+    const isPasswordValid = await bcrypt.compare(password, room.password);
+    if (!isPasswordValid) {
+      return new BadRequestException('Invalid password for the room');
+    }
+    return { roomId: room.id };
   }
 }

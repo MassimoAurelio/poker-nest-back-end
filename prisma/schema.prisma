@@ -22,7 +22,7 @@ model regusers {
 
 model rooms {
   id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  v        Int      @map("__v")
+  v        Int?     @map("__v")
   name     String   @unique(map: "name_1")
   password String
   players  Json?
