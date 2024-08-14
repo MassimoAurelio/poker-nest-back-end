@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+type UsersCards {
+  id    String @map("_id") @db.ObjectId
+  suit  String
+  value String
+}
+
+model regusers {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  username String @unique
+  password String
+  v        Int?   @map("__v")
+}
+
+model rooms {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  v        Int      @map("__v")
+  name     String   @unique(map: "name_1")
+  password String
+  players  Json?
+  users    String[]
+}
+
+model rounds {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+}
+
+model userrooms {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+}
+
+model users {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  v               Int          @map("__v")
+  allIn           Json?
+  allInColl       Json?
+  cards           UsersCards[]
+  createdAt       DateTime     @db.Date
+  currentPlayerId Boolean
+  flopLastBet     Int
+  fold            Boolean
+  isDealer        Boolean
+  lastBet         Int
+  loser           Boolean
+  makeTurn        Boolean
+  name            String
+  position        Int
+  preFlopLastBet  Int
+  riverLastBet    Int
+  roomId          String       @db.ObjectId
+  roundStage      String
+  stack           Int
+  turnLastBet     Int
+  updatedAt       DateTime     @db.Date
+  winner          Boolean
+}
