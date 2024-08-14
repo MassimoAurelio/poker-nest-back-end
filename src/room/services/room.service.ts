@@ -1,30 +1,26 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { RoomDto } from './dto/room.dto';
-import { PrismaService } from 'prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { RoomDto } from '../dto/room.dto';
+import { RoomRepository } from '../repositories/room.repository';
 @Injectable()
 export class RoomService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly roomRepository: RoomRepository) {}
 
   async createRoom(roomDto: RoomDto) {
     const { name, password } = roomDto;
-    const existingRoom = await this.prisma.rooms.findUnique({
-      where: { name },
-    });
+    const existingRoom = await this.roomRepository.findRoomByName(name);
 
     if (existingRoom) {
       return new BadRequestException('A room with that name already exists');
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newRoom = await this.prisma.rooms.create({
-      data: { name, password: hashedPassword, v: 0 },
-    });
+    const newRoom = await this.roomRepository.createRoom(name, hashedPassword);
     return { roomId: newRoom.id };
   }
 
   async enterRoom(roomDto: RoomDto) {
     const { name, password } = roomDto;
-    const room = await this.prisma.rooms.findUnique({ where: { name } });
+    const room = await this.roomRepository.findRoomByName(name);
     if (!room) {
       return new BadRequestException('A room with that name not found');
     }
