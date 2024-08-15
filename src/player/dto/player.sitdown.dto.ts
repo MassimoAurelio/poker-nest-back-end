@@ -1,18 +1,29 @@
-import { IsEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class SitDownDto {
-  @IsEmpty()
+  @IsNotEmpty()
   @IsString()
   player: string;
 
-  @IsEmpty()
+  @IsNotEmpty()
   @IsNumber()
+  @Min(0)
+  @Max(9)
   position: number;
 
+  @IsOptional()
   @IsNumber()
+  @Min(0)
   stack: number;
 
-  @IsEmpty()
+  @IsNotEmpty()
   @IsString()
   roomId: string;
 }

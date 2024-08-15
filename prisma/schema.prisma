@@ -7,76 +7,57 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-type UsersCards {
-  id    String @map("_id") @db.ObjectId
-  suit  String
-  value String
+model Room {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  password String
+  users    User[]
 }
 
-model regusers {
+model RegUser {
   id       String @id @default(auto()) @map("_id") @db.ObjectId
   username String @unique
   password String
-  v        Int?   @map("__v")
 }
 
-model createUser {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  username String @unique
-  password String
-  v        Int?   @map("__v")
+model User {
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  name            String?
+  stack           Int?
+  position        Int?
+  roomId          String     @db.ObjectId
+  isDealer        Boolean    @default(false)
+  currentPlayerId Boolean    @default(false)
+  fold            Boolean    @default(false)
+  lastBet         Int        @default(0)
+  preFlopLastBet  Int        @default(0)
+  flopLastBet     Int        @default(0)
+  turnLastBet     Int        @default(0)
+  riverLastBet    Int        @default(0)
+  makeTurn        Boolean    @default(false)
+  allIn           Boolean?
+  allInColl       Boolean?
+  loser           Boolean    @default(false)
+  winner          Boolean    @default(false)
+  cards           Card[]
+  roundStage      RoundStage @default(preflop)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  room Room @relation(fields: [roomId], references: [id])
 }
 
-model rooms {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  v        Int?     @map("__v")
-  name     String   @unique(map: "name_1")
-  password String
-  players  Json?
-  users    String[]
+model Card {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  value  String
+  suit   String
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
 }
 
-model Table {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  version  Int?     @map("__v")
-  name     String   @unique
-  password String
-  players  Json?
-  users    String[]
-
-  @@map("tables")
-}
-
-model rounds {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-}
-
-model userrooms {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-}
-
-model users {
-  id              String       @id @default(auto()) @map("_id") @db.ObjectId
-  v               Int          @map("__v")
-  allIn           Json?
-  allInColl       Json?
-  cards           UsersCards[]
-  createdAt       DateTime     @db.Date
-  currentPlayerId Boolean
-  flopLastBet     Int
-  fold            Boolean
-  isDealer        Boolean
-  lastBet         Int
-  loser           Boolean
-  makeTurn        Boolean
-  name            String
-  position        Int
-  preFlopLastBet  Int
-  riverLastBet    Int
-  roomId          String       @db.ObjectId
-  roundStage      String
-  stack           Int
-  turnLastBet     Int
-  updatedAt       DateTime     @db.Date
-  winner          Boolean
+enum RoundStage {
+  preflop
+  flop
+  turn
+  river
 }

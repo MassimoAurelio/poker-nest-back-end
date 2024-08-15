@@ -50,4 +50,9 @@ export class AuthService {
 
     return { token, user: { username: existingUser.username } };
   }
+
+  async tableInfo() {
+    const allPlayers = await this.authRepository.returnTableInfo();
+    return allPlayers;
+  }
 }
