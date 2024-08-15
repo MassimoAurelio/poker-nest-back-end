@@ -20,6 +20,13 @@ model regusers {
   v        Int?   @map("__v")
 }
 
+model createUser {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  username String @unique
+  password String
+  v        Int?   @map("__v")
+}
+
 model rooms {
   id       String   @id @default(auto()) @map("_id") @db.ObjectId
   v        Int?     @map("__v")
@@ -27,6 +34,17 @@ model rooms {
   password String
   players  Json?
   users    String[]
+}
+
+model Table {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  version  Int?     @map("__v")
+  name     String   @unique
+  password String
+  players  Json?
+  users    String[]
+
+  @@map("tables")
 }
 
 model rounds {

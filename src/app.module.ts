@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { PokerModule } from './poker/poker.module';
 import { AuthModule } from './auth/auth.module';
+
 import { RoomModule } from './room/room.module';
 
+import { PlayerModule } from './player/player.module';
 
 @Module({
-  imports: [PokerModule, AuthModule, RoomModule],
+  imports: [AuthModule, RoomModule, PlayerModule],
   controllers: [],
   providers: [],
 })
