@@ -55,4 +55,9 @@ export class AuthService {
     const allPlayers = await this.authRepository.returnTableInfo();
     return allPlayers;
   }
+
+  async deletePlayers() {
+    const allPlayers = await this.authRepository.deleteAll();
+    return allPlayers;
+  }
 }

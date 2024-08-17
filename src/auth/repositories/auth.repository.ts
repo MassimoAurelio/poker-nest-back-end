@@ -20,4 +20,8 @@ export class AuthRepository {
   async returnTableInfo() {
     return this.prisma.user.findMany({});
   }
+
+  async deleteAll() {
+    return this.prisma.user.deleteMany({});
+  }
 }

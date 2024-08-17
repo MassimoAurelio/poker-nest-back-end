@@ -7,7 +7,7 @@ import {
   Min,
 } from 'class-validator';
 
-export class SitDownDto {
+export class JoinTableDto {
   @IsNotEmpty()
   @IsString()
   player: string;

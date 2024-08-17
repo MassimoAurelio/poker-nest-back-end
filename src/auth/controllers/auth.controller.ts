@@ -20,4 +20,9 @@ export class AuthController {
   async info() {
     return this.authService.tableInfo();
   }
+
+  @Post('delete')
+  async del() {
+    return this.authService.deletePlayers();
+  }
 }
