@@ -1,4 +1,3 @@
-import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import {
   MessageBody,
@@ -8,6 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { JoinTableDto } from './dto/joinTable.dto';
+import { PlayerService } from './player.service';
 
 @WebSocketGateway()
 @Injectable()
@@ -15,24 +15,14 @@ export class PlayerGateWay {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly service: PlayerService) {}
 
   @SubscribeMessage('createUser')
   async handleCreateUser(
     @MessageBody()
     joinTableDto: JoinTableDto,
   ) {
-    const { player: name, position, stack, roomId } = joinTableDto;
-
-    const newUser = await this.prisma.user.create({
-      data: {
-        name,
-        position,
-        stack,
-        roomId,
-      },
-    });
-
+    const newUser = await this.service.createUser(joinTableDto);
     this.server.emit('userCreated', newUser);
   }
 }

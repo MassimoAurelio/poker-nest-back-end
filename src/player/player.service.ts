@@ -1,19 +1,21 @@
-import { PrismaService } from '@/prisma/prisma.service'; // Путь к PrismaService
 import { Injectable } from '@nestjs/common';
+import { JoinTableDto } from './dto/joinTable.dto';
+import { PlayerRepository } from './repository/player.repository';
 
 @Injectable()
 export class PlayerService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: PlayerRepository) {}
 
-  async join() {}
-  async createUser(data: {
-    name: string;
-    stack: number;
-    position: number;
-    roomId: string;
-  }) {
-    return this.prisma.user.create({
-      data,
-    });
+  async createUser(joinTableDto: JoinTableDto) {
+    const { player: name, position, stack, roomId } = joinTableDto;
+
+    const newUser = await this.repository.createPlayer(
+      name,
+      position,
+      stack,
+      roomId,
+    );
+
+    return newUser;
   }
 }
