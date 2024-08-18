@@ -5,7 +5,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class LeaveTable {
   @IsNotEmpty()
   @IsString()
-  player: string;
+  name: string;
 
   @IsNotEmpty()
   @IsString()

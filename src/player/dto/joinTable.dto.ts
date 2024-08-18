@@ -10,7 +10,7 @@ import {
 export class JoinTableDto {
   @IsNotEmpty()
   @IsString()
-  player: string;
+  name: string;
 
   @IsNotEmpty()
   @IsNumber()
