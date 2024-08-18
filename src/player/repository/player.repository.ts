@@ -17,6 +17,18 @@ export class PlayerRepository {
         position,
         stack,
         roomId,
+        cards: {
+          create: [],
+        },
+      },
+    });
+  }
+
+  async leavePlayer(name: string, roomId: string) {
+    return await this.prisma.user.deleteMany({
+      where: {
+        name: name,
+        roomId: roomId,
       },
     });
   }

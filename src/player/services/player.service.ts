@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { JoinTableDto } from './dto/joinTable.dto';
-import { PlayerRepository } from './repository/player.repository';
+import { JoinTableDto } from '../dto/joinTable.dto';
+import { LeaveTable } from '../dto/leaveTable.dta';
+import { PlayerRepository } from '../repository/player.repository';
 
 @Injectable()
 export class PlayerService {
@@ -17,5 +18,10 @@ export class PlayerService {
     );
 
     return newUser;
+  }
+
+  async leaveUser(leaveTable: LeaveTable) {
+    const { player, roomId } = leaveTable;
+    return await this.repository.leavePlayer(player, roomId);
   }
 }

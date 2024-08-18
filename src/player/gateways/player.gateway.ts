@@ -6,8 +6,9 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import { JoinTableDto } from './dto/joinTable.dto';
-import { PlayerService } from './player.service';
+import { JoinTableDto } from '../dto/joinTable.dto';
+import { LeaveTable } from '../dto/leaveTable.dta';
+import { PlayerService } from '../services/player.service';
 
 @WebSocketGateway()
 @Injectable()
@@ -24,5 +25,11 @@ export class PlayerGateWay {
   ) {
     const newUser = await this.service.createUser(joinTableDto);
     this.server.emit('userCreated', newUser);
+  }
+
+  @SubscribeMessage('leaveUser')
+  async handleLeaveUser(@MessageBody() leaveTable: LeaveTable) {
+    const leaveUser = await this.service.leaveUser(leaveTable);
+    this.server.emit('userLeave', leaveUser);
   }
 }

@@ -39,20 +39,13 @@ model User {
   allInColl       Boolean?
   loser           Boolean    @default(false)
   winner          Boolean    @default(false)
-  cards           Card[]
   roundStage      RoundStage @default(preflop)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
+  Room            Room       @relation(fields: [roomId], references: [id])
+  cards           Json       @default("[]")
 
-  room Room @relation(fields: [roomId], references: [id])
-}
-
-model Card {
-  id     String  @id @default(auto()) @map("_id") @db.ObjectId
-  value  String
-  suit   String
-  user   User?   @relation(fields: [userId], references: [id])
-  userId String?
+  @@index([roomId])
 }
 
 enum RoundStage {
