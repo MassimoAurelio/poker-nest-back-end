@@ -22,6 +22,7 @@ export class PlayerService {
 
   async leaveUser(leaveTable: LeaveTable) {
     const { player, roomId } = leaveTable;
-    return await this.repository.leavePlayer(player, roomId);
+    await this.repository.leavePlayer(player, roomId);
+    return { name: player, roomId };
   }
 }
