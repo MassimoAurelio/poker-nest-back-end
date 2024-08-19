@@ -11,31 +11,40 @@ export class PlayerService {
   async createUser(socket: Socket, joinTableDto: JoinTableDto) {
     const { name, position, stack, roomId } = joinTableDto;
 
-    const user = await this.repository.findUserByNameAndRoomId(name, roomId);
+    try {
+      const user = await this.repository.findUserByNameAndRoomId(name, roomId);
+      if (user) {
+        socket.emit('createUserError', {
+          message: 'User already exists in the room',
+        });
+        return;
+      }
 
-    if (user) {
+      const userInThisPosition =
+        await this.repository.findUserByPositionAndRoomId(position, roomId);
+      if (userInThisPosition) {
+        socket.emit('createUserError', {
+          message: `User already exist in the position: ${position}`,
+        });
+        return;
+      }
+
+      const newUser = await this.repository.createPlayer(
+        name,
+        position,
+        stack,
+        roomId,
+      );
+
+      socket.emit('userCreated', newUser);
+      return newUser;
+    } catch (error) {
       socket.emit('createUserError', {
-        message: 'User already exists in the room',
+        message: 'An unexpected error occurred',
       });
+      console.error('Error creating user:', error);
       return;
     }
-
-    const userInThisPosition =
-      await this.repository.findUserByPositionAndRoomId(position, roomId);
-    if (userInThisPosition) {
-      socket.emit('createUserError', {
-        message: `User already exist in the position: ${position}`,
-      });
-      return;
-    }
-    const newUser = await this.repository.createPlayer(
-      name,
-      position,
-      stack,
-      roomId,
-    );
-
-    return newUser;
   }
 
   async leaveUser(leaveTable: RoomActionDto) {
