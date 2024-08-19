@@ -17,9 +17,25 @@ export class PlayerRepository {
         position,
         stack,
         roomId,
-        cards: {
-          create: [],
-        },
+        cards: [],
+      },
+    });
+  }
+
+  async findUserByNameAndRoomId(name: string, roomId: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        name: name,
+        roomId: roomId,
+      },
+    });
+  }
+
+  async findUserByPositionAndRoomId(position: number, roomId: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        position: position,
+        roomId: roomId,
       },
     });
   }
@@ -31,5 +47,9 @@ export class PlayerRepository {
         roomId: roomId,
       },
     });
+  }
+
+  async getAllUsers() {
+    return await this.prisma.user.findMany({});
   }
 }
