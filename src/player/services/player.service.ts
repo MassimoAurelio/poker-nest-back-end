@@ -8,28 +8,34 @@ import { PlayerRepository } from '../repository/player.repository';
 export class PlayerService {
   constructor(private readonly repository: PlayerRepository) {}
 
-  async createUser(socket: Socket, joinTableDto: JoinTableDto) {
+  async createPlayer(socket: Socket, joinTableDto: JoinTableDto) {
     const { name, position, stack, roomId } = joinTableDto;
 
     try {
-      const user = await this.repository.findUserByNameAndRoomId(name, roomId);
+      const user = await this.repository.findUserByNameAndRoomIdInDatabase(
+        name,
+        roomId,
+      );
       if (user) {
-        socket.emit('createUserError', {
+        socket.emit('createPlayerError', {
           message: 'User already exists in the room',
         });
         return;
       }
 
       const userInThisPosition =
-        await this.repository.findUserByPositionAndRoomId(position, roomId);
+        await this.repository.findUserByPositionAndRoomIdInDatabase(
+          position,
+          roomId,
+        );
       if (userInThisPosition) {
-        socket.emit('createUserError', {
+        socket.emit('createPlayerError', {
           message: `User already exist in the position: ${position}`,
         });
         return;
       }
 
-      const newUser = await this.repository.createPlayer(
+      const newUser = await this.repository.createPlayerInDatabase(
         name,
         position,
         stack,
@@ -39,7 +45,7 @@ export class PlayerService {
       socket.emit('userCreated', newUser);
       return newUser;
     } catch (error) {
-      socket.emit('createUserError', {
+      socket.emit('createPlayerError', {
         message: 'An unexpected error occurred',
       });
       console.error('Error creating user:', error);
@@ -47,14 +53,14 @@ export class PlayerService {
     }
   }
 
-  async leaveUser(leaveTable: RoomActionDto) {
+  async leavePlayer(leaveTable: RoomActionDto) {
     const { name, roomId } = leaveTable;
-    await this.repository.leavePlayer(name, roomId);
+    await this.repository.leavePlayerInDatabase(name, roomId);
     return { name, roomId };
   }
 
   async getUsers() {
-    const allPlayers = await this.repository.getAllUsers();
+    const allPlayers = await this.repository.getAllUsersFromDatabase();
     return allPlayers;
   }
 }

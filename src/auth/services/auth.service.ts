@@ -17,21 +17,23 @@ export class AuthService {
 
   async register(registerDto: AuthDto) {
     const { username, password } = registerDto;
-    const existingUser = await this.authRepository.findUserByUsername(username);
+    const existingUser =
+      await this.authRepository.findUserByUsernameInDatabase(username);
 
     if (existingUser) {
       throw new BadRequestException('A user with that name already exists');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await this.authRepository.createUser(username, hashedPassword);
+    await this.authRepository.createUserInDatabase(username, hashedPassword);
 
     return { message: 'The user has been successfully registered' };
   }
 
   async login(loginDto: AuthDto) {
     const { username, password } = loginDto;
-    const existingUser = await this.authRepository.findUserByUsername(username);
+    const existingUser =
+      await this.authRepository.findUserByUsernameInDatabase(username);
 
     if (!existingUser) {
       throw new UnauthorizedException('Invalid credentials');
@@ -52,12 +54,12 @@ export class AuthService {
   }
 
   async tableInfo() {
-    const allPlayers = await this.authRepository.returnTableInfo();
+    const allPlayers = await this.authRepository.returnTableInfoFromDatabase();
     return allPlayers;
   }
 
   async deletePlayers() {
-    const allPlayers = await this.authRepository.deleteAll();
+    const allPlayers = await this.authRepository.deleteAllPlayersFromDatabase();
     return allPlayers;
   }
 }

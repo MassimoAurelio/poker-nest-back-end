@@ -25,13 +25,13 @@ export class PlayerGateWay {
     @MessageBody()
     joinTableDto: JoinTableDto,
   ) {
-    const newUser = await this.service.createUser(socket, joinTableDto);
+    const newUser = await this.service.createPlayer(socket, joinTableDto);
     this.server.emit('userCreated', newUser);
   }
 
   @SubscribeMessage('leaveUser')
   async handleLeaveUser(@MessageBody() leaveTable: RoomActionDto) {
-    const leaveUser = await this.service.leaveUser(leaveTable);
+    const leaveUser = await this.service.leavePlayer(leaveTable);
     this.server.emit('userLeave', leaveUser);
   }
 }

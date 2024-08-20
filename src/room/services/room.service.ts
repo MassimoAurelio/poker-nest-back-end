@@ -8,19 +8,23 @@ export class RoomService {
 
   async createRoom(roomDto: RoomDto) {
     const { name, password } = roomDto;
-    const existingRoom = await this.roomRepository.findRoomByName(name);
+    const existingRoom =
+      await this.roomRepository.findRoomByNameFromDatabase(name);
 
     if (existingRoom) {
       return new BadRequestException('A room with that name already exists');
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newRoom = await this.roomRepository.createRoom(name, hashedPassword);
+    const newRoom = await this.roomRepository.createRoomInDatabase(
+      name,
+      hashedPassword,
+    );
     return { roomId: newRoom.id };
   }
 
   async enterRoom(roomDto: RoomDto) {
     const { name, password } = roomDto;
-    const room = await this.roomRepository.findRoomByName(name);
+    const room = await this.roomRepository.findRoomByNameFromDatabase(name);
     if (!room) {
       return new BadRequestException('A room with that name not found');
     }

@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 export class PlayerRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createPlayer(
+  async createPlayerInDatabase(
     name: string,
     position: number,
     stack: number,
@@ -22,7 +22,7 @@ export class PlayerRepository {
     });
   }
 
-  async findUserByNameAndRoomId(name: string, roomId: string) {
+  async findUserByNameAndRoomIdInDatabase(name: string, roomId: string) {
     return await this.prisma.user.findFirst({
       where: {
         name: name,
@@ -31,7 +31,10 @@ export class PlayerRepository {
     });
   }
 
-  async findUserByPositionAndRoomId(position: number, roomId: string) {
+  async findUserByPositionAndRoomIdInDatabase(
+    position: number,
+    roomId: string,
+  ) {
     return await this.prisma.user.findFirst({
       where: {
         position: position,
@@ -40,7 +43,7 @@ export class PlayerRepository {
     });
   }
 
-  async leavePlayer(name: string, roomId: string) {
+  async leavePlayerInDatabase(name: string, roomId: string) {
     return await this.prisma.user.deleteMany({
       where: {
         name: name,
@@ -49,7 +52,7 @@ export class PlayerRepository {
     });
   }
 
-  async getAllUsers() {
+  async getAllUsersFromDatabase() {
     return await this.prisma.user.findMany({});
   }
 }

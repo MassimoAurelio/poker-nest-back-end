@@ -5,23 +5,23 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findUserByUsername(username: string) {
+  async findUserByUsernameInDatabase(username: string) {
     return this.prisma.regUser.findUnique({
       where: { username },
     });
   }
 
-  async createUser(username: string, hashedPassword: string) {
+  async createUserInDatabase(username: string, hashedPassword: string) {
     return this.prisma.regUser.create({
       data: { username, password: hashedPassword },
     });
   }
 
-  async returnTableInfo() {
+  async returnTableInfoFromDatabase() {
     return this.prisma.user.findMany({});
   }
 
-  async deleteAll() {
+  async deleteAllPlayersFromDatabase() {
     return this.prisma.user.deleteMany({});
   }
 }
