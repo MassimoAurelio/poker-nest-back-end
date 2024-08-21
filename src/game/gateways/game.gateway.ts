@@ -1,4 +1,5 @@
-import { CardsService } from '@/src/game/services/game.cards.service';
+import { GameService } from '@/src/game/services/game.service';
+
 import {
   SubscribeMessage,
   WebSocketGateway,
@@ -11,7 +12,7 @@ export class GameGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly cardsService: CardsService) {}
+  constructor(private readonly cardsService: GameService) {}
 
   @SubscribeMessage('dealCards')
   async distributeCardsAndNotifyClients(data: {

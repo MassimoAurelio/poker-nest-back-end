@@ -9,6 +9,14 @@ export class RoomRepository {
       where: { name },
     });
   }
+
+  async findUsersInRoom(roomId: string) {
+    return this.prisma.user.findMany({
+      where: {
+        roomId: roomId,
+      },
+    });
+  }
   async createRoomInDatabase(name: string, hashedPassword: string) {
     return this.prisma.room.create({
       data: { name, password: hashedPassword },

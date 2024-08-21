@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { GameRepository } from '../repositories/game.repository';
 
 @Injectable()
-export class CardsService {
+export class GameService {
   constructor(private readonly gameRepository: GameRepository) {}
 
   async startCardDistribution(roomId: string): Promise<any[]> {

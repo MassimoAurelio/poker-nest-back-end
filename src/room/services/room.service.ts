@@ -6,6 +6,11 @@ import { RoomRepository } from '../repositories/room.repository';
 export class RoomService {
   constructor(private readonly roomRepository: RoomRepository) {}
 
+  async roomInfo(roomId: string) {
+    const allUsers = await this.roomRepository.findUsersInRoom(roomId);
+    return allUsers;
+  }
+
   async createRoom(roomDto: RoomDto) {
     const { name, password } = roomDto;
     const existingRoom =
@@ -26,12 +31,12 @@ export class RoomService {
     const { name, password } = roomDto;
     const room = await this.roomRepository.findRoomByNameFromDatabase(name);
     if (!room) {
-      return new BadRequestException('A room with that name not found');
+      throw new BadRequestException('A room with that name not found');
     }
 
     const isPasswordValid = await bcrypt.compare(password, room.password);
     if (!isPasswordValid) {
-      return new BadRequestException('Invalid password for the room');
+      throw new BadRequestException('Invalid password for the room');
     }
     return { roomId: room.id };
   }
