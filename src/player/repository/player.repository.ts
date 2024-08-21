@@ -22,6 +22,14 @@ export class PlayerRepository {
     });
   }
 
+  async findAllUsersInRoomInDatabase(roomId: string) {
+    return await this.prisma.user.findMany({
+      where: {
+        roomId: roomId,
+      },
+    });
+  }
+
   async findUserByNameAndRoomIdInDatabase(name: string, roomId: string) {
     return await this.prisma.user.findFirst({
       where: {
@@ -50,9 +58,5 @@ export class PlayerRepository {
         roomId: roomId,
       },
     });
-  }
-
-  async getAllUsersFromDatabase() {
-    return await this.prisma.user.findMany({});
   }
 }

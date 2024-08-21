@@ -59,8 +59,9 @@ export class PlayerService {
     return { name, roomId };
   }
 
-  async getUsers() {
-    const allPlayers = await this.repository.getAllUsersFromDatabase();
+  async getUsers(roomId: string) {
+    const allPlayers =
+      await this.repository.findAllUsersInRoomInDatabase(roomId);
     return allPlayers;
   }
 }

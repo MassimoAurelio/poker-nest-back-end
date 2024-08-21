@@ -15,10 +15,6 @@ export const values = [
   'A',
 ];
 
-/**
- * Функция для перемешивания колоды карт
- * @returns {Array} Перемешанная колода карт
- */
 export const shuffleDeck = (): { value: string; suit: string }[] => {
   const deck = [];
   suits.forEach((suit) => {
@@ -35,14 +31,6 @@ export const shuffleDeck = (): { value: string; suit: string }[] => {
   return deck;
 };
 
-/**
- * Функция для раздачи карт игрокам
- * @param {Array} deck - Колода карт
- * @param {Array} players - Массив игроков
- * @param {Array} playerCards - Массив карт игроков
- * @param {Array} deckWithoutPlayerCards - Массив карт, оставшихся в колоде
- * @returns {Array} Массив карт игроков
- */
 export const dealCards = (
   deck: { value: string; suit: string }[],
   players: any[],
