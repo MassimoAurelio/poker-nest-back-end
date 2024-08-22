@@ -6,6 +6,12 @@ import { GameRepository } from '../repositories/game.repository';
 export class GameService {
   constructor(private readonly gameRepository: GameRepository) {}
 
+  async getActivePlayers(roomId: string) {
+    const activePlayers =
+      await this.gameRepository.findAllPlayersInRoomInDatabase(roomId);
+    return activePlayers;
+  }
+
   async startNewRound(roomId: string) {
     await this.gameRepository.fullUpdateAllUsers(roomId);
 

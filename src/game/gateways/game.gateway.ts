@@ -1,3 +1,4 @@
+import { GameDto } from '@/src/game/dto/game.dto';
 import { GameService } from '@/src/game/services/game.service';
 import {
   MessageBody,
@@ -6,7 +7,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import { GameDto } from '../dto/game.dto';
 
 @WebSocketGateway()
 export class GameGateway {
@@ -20,19 +20,5 @@ export class GameGateway {
     const { roomId } = gameDto;
     const updatePlayers = await this.cardsService.startNewRound(roomId);
     this.server.emit('start', updatePlayers);
-  }
-
-  @SubscribeMessage('dealCards')
-  async distributeCardsAndNotifyClients(
-    @MessageBody() gameDto: GameDto,
-  ): Promise<void> {
-    const { roomId } = gameDto;
-    try {
-      const updatedPlayers =
-        await this.cardsService.startCardDistribution(roomId);
-      this.server.emit('updatedPlayers', updatedPlayers);
-    } catch (error) {
-      console.error('Error during card distribution:', error);
-    }
   }
 }

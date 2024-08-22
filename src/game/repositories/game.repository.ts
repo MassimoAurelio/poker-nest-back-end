@@ -104,7 +104,7 @@ export class GameRepository {
             decrement: 50,
           },
           lastBet: 50,
-          preFlopLastBet: 25,
+          preFlopLastBet: 50,
         },
       });
     }

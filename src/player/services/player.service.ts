@@ -7,6 +7,8 @@ import { PlayerRepository } from '../repository/player.repository';
 export class PlayerService {
   constructor(private readonly repository: PlayerRepository) {}
 
+  private playerCount = {};
+
   async createPlayer(socket: Socket, joinTableDto: JoinTableDto) {
     const { name, position, stack, roomId } = joinTableDto;
 

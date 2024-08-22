@@ -60,3 +60,10 @@ enum RoundStage {
   turn
   river
 }
+
+model GameState {
+  roomId            String    @id @db.VarChar
+  roundStarted      Boolean   @default(false)
+  waitingForPlayers Int       @default(0)
+  timerStart        DateTime? @db.Timestamp(6)
+}
