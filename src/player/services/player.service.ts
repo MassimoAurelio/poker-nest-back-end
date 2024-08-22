@@ -3,7 +3,6 @@ import { Socket } from 'socket.io';
 import { JoinTableDto } from '../dto/joinTable.dto';
 import { RoomActionDto } from '../dto/roomAction.dto';
 import { PlayerRepository } from '../repository/player.repository';
-
 @Injectable()
 export class PlayerService {
   constructor(private readonly repository: PlayerRepository) {}
@@ -42,7 +41,6 @@ export class PlayerService {
         roomId,
       );
 
-      socket.emit('userCreated', newUser);
       return newUser;
     } catch (error) {
       socket.emit('createPlayerError', {

@@ -3,30 +3,34 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Room {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  id       String  @id @default(uuid())
   name     String
   password String
   roomId   String?
   users    User[]
+
+  @@map("rooms")
 }
 
 model RegUser {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  id       String @id @default(uuid())
   username String @unique
   password String
+
+  @@map("reg_users")
 }
 
 model User {
-  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  id              String     @id @default(uuid())
   name            String?
   stack           Int?
   position        Int?
-  roomId          String     @db.ObjectId
+  roomId          String
   isDealer        Boolean    @default(false)
   currentPlayerId Boolean    @default(false)
   fold            Boolean    @default(false)
@@ -47,6 +51,7 @@ model User {
   cards           Json       @default("[]")
 
   @@index([roomId])
+  @@map("users")
 }
 
 enum RoundStage {
