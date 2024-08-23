@@ -19,7 +19,7 @@ export class GameService {
   async startNewRound(roomId: string) {
     await this.gameRepository.fullUpdateAllUsers(roomId);
 
-    await this.gameRepository.setCurrentPlayer(roomId, 3);
+    await this.gameRepository.setCurrentPlayer(roomId, 2);
 
     const sbPlayer = await this.gameRepository.setSb(roomId);
 

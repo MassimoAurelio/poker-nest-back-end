@@ -1,3 +1,4 @@
+import { PrismaService } from '@/prisma/prisma.service';
 import { CommonUserRepository } from '@/src/common/bd/user.repository';
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
@@ -9,6 +10,7 @@ export class PlayerService {
   constructor(
     private readonly repository: PlayerRepository,
     private readonly commonUserRepository: CommonUserRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async createPlayer(socket: Socket, joinTableDto: JoinTableDto) {
@@ -68,13 +70,15 @@ export class PlayerService {
     return allPlayers;
   }
 
-  async fold(roomId: string, name: string) {
-    const allInPlayer = await this.commonUserRepository.allInPlayers(roomId);
-    if (allInPlayer) {
-      await this.repository.markPlayerFoldAndEnableTurn(roomId, name);
-    } else {
-      await this.repository.markPlayerFoldAndMakeTurn(roomId, name);
-    }
-    return allInPlayer;
+  async updatePlayer(name: string): Promise<any> {
+    return await this.prisma.user.updateMany({
+      where: {
+        name: name,
+      },
+      data: {
+        fold: true,
+        makeTurn: true,
+      },
+    });
   }
 }

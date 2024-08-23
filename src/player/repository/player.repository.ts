@@ -22,24 +22,15 @@ export class PlayerRepository {
     });
   }
 
-  async markPlayerFoldAndEnableTurn(roomId: string, name: string) {
-    return await this.prisma.user.updateMany({
+  async updatePlayer(name: string) {
+    await this.prisma.user.updateMany({
       where: {
-        roomId: roomId,
         name: name,
       },
       data: {
         fold: true,
-        allIn: false,
         makeTurn: true,
       },
-    });
-  }
-
-  async markPlayerFoldAndMakeTurn(roomId: string, name: string) {
-    return await this.prisma.user.updateMany({
-      where: { roomId: roomId, name: name },
-      data: { fold: true, makeTurn: true },
     });
   }
 
