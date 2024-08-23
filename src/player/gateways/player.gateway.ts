@@ -60,7 +60,7 @@ export class PlayerGateWay
 
   @SubscribeMessage('fold')
   async handleFoldPlayer(@MessageBody() name: string) {
-    const foldPlayer = await this.service.updatePlayer(name);
+    const foldPlayer = await this.service.makeFold(name);
     this.server.emit('foldPlayer', foldPlayer);
   }
 }

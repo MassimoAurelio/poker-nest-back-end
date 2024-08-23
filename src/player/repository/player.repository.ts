@@ -22,14 +22,57 @@ export class PlayerRepository {
     });
   }
 
-  async updatePlayer(name: string) {
-    await this.prisma.user.updateMany({
-      where: {
-        name: name,
-      },
+  async makeFoldAndMakeTurnUserByName(name: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { name },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return await this.prisma.user.update({
+      where: { id: user.id },
       data: {
         fold: true,
         makeTurn: true,
+      },
+    });
+  }
+
+  async findFoldPlayers() {
+    return await this.prisma.user.findMany({
+      where: {
+        fold: false,
+      },
+      orderBy: {
+        position: 'asc',
+      },
+    });
+  }
+
+  async findCurrentPlayer() {
+    return await this.prisma.user.findFirst({
+      where: {
+        currentPlayerId: true,
+      },
+    });
+  }
+
+  async setCurrentPlayer(name: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        name,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        currentPlayerId: true,
       },
     });
   }

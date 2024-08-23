@@ -70,15 +70,34 @@ export class PlayerService {
     return allPlayers;
   }
 
-  async updatePlayer(name: string): Promise<any> {
-    return await this.prisma.user.updateMany({
-      where: {
-        name: name,
-      },
-      data: {
-        fold: true,
-        makeTurn: true,
-      },
-    });
+  async makeFold(name: string): Promise<any> {
+    const currentPlayer = await this.repository.findCurrentPlayer();
+    const foldPlayer =
+      await this.repository.makeFoldAndMakeTurnUserByName(name);
+    const allPlayers = await this.repository.findFoldPlayers();
+
+    let nextTurn;
+
+    const maxPositionPlayer = allPlayers[0];
+
+    if (currentPlayer.position === maxPositionPlayer.position) {
+      const nextPlayer = allPlayers.filter(
+        (player) => player.position > currentPlayer.position,
+      );
+      nextTurn = nextPlayer.find((player) => !player.fold);
+    } else {
+      nextTurn = allPlayers.find(
+        (player) => player.position > currentPlayer.position && !player.fold,
+      );
+    }
+
+    if (!nextTurn) {
+      nextTurn = allPlayers.find((player) => !player.fold);
+    }
+
+    // Передаем правильное имя следующего игрока
+    await this.repository.setCurrentPlayer(nextTurn.name);
+
+    return foldPlayer;
   }
 }
