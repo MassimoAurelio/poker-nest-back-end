@@ -1,14 +1,18 @@
+import { CommonUserRepository } from '@/src/common/bd/user.repository';
 import { dealCards, shuffleDeck } from '@/src/game/utils/game.cards';
 import { Injectable } from '@nestjs/common';
 import { GameRepository } from '../repositories/game.repository';
 
 @Injectable()
 export class GameService {
-  constructor(private readonly gameRepository: GameRepository) {}
+  constructor(
+    private readonly gameRepository: GameRepository,
+    private readonly commonUserRepository: CommonUserRepository,
+  ) {}
 
   async getActivePlayers(roomId: string) {
     const activePlayers =
-      await this.gameRepository.findAllPlayersInRoomInDatabase(roomId);
+      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
     return activePlayers;
   }
 
@@ -29,7 +33,7 @@ export class GameService {
     }
     await this.startCardDistribution(roomId);
     const updatedPlayers =
-      await this.gameRepository.findAllPlayersInRoomInDatabase(roomId);
+      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
 
     return updatedPlayers;
   }
@@ -39,7 +43,7 @@ export class GameService {
       const deck = shuffleDeck();
 
       const players =
-        await this.gameRepository.findAllPlayersInRoomInDatabase(roomId);
+        await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
 
       let playerCards = [];
       let deckWithoutPlayerCards = [];
@@ -52,7 +56,7 @@ export class GameService {
       await Promise.all(updatePromises);
 
       const updatedPlayers =
-        await this.gameRepository.findAllPlayersInRoomInDatabase(roomId);
+        await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
 
       return updatedPlayers;
     } catch (error) {

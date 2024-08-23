@@ -1,3 +1,4 @@
+import { CommonUserRepository } from '@/src/common/bd/user.repository';
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { JoinTableDto } from '../dto/joinTable.dto';
@@ -5,18 +6,20 @@ import { RoomActionDto } from '../dto/roomAction.dto';
 import { PlayerRepository } from '../repository/player.repository';
 @Injectable()
 export class PlayerService {
-  constructor(private readonly repository: PlayerRepository) {}
-
-  private playerCount = {};
+  constructor(
+    private readonly repository: PlayerRepository,
+    private readonly commonUserRepository: CommonUserRepository,
+  ) {}
 
   async createPlayer(socket: Socket, joinTableDto: JoinTableDto) {
     const { name, position, stack, roomId } = joinTableDto;
 
     try {
-      const user = await this.repository.findUserByNameAndRoomIdInDatabase(
-        name,
-        roomId,
-      );
+      const user =
+        await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
+          name,
+          roomId,
+        );
       if (user) {
         socket.emit('createPlayerError', {
           message: 'User already exists in the room',
@@ -25,7 +28,7 @@ export class PlayerService {
       }
 
       const userInThisPosition =
-        await this.repository.findUserByPositionAndRoomIdInDatabase(
+        await this.commonUserRepository.findUserByPositionAndRoomIdInDatabase(
           position,
           roomId,
         );
@@ -61,7 +64,17 @@ export class PlayerService {
 
   async getUsers(roomId: string) {
     const allPlayers =
-      await this.repository.findAllUsersInRoomInDatabase(roomId);
+      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
     return allPlayers;
+  }
+
+  async fold(roomId: string, name: string) {
+    const allInPlayer = await this.commonUserRepository.allInPlayers(roomId);
+    if (allInPlayer) {
+      await this.repository.markPlayerFoldAndEnableTurn(roomId, name);
+    } else {
+      await this.repository.markPlayerFoldAndMakeTurn(roomId, name);
+    }
+    return allInPlayer;
   }
 }

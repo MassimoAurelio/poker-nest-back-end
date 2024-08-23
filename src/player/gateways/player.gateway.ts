@@ -57,4 +57,10 @@ export class PlayerGateWay
     const findAllPlayers = await this.service.getUsers(roomId);
     this.server.emit('getUsers', findAllPlayers);
   }
+
+  @SubscribeMessage('fold')
+  async handleFoldPlayer(@MessageBody() roomId: string, name: string) {
+    const foldPlayer = await this.service.fold(roomId, name);
+    this.server.emit('foldPlayer', foldPlayer);
+  }
 }

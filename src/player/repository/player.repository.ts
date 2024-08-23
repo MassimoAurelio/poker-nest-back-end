@@ -22,32 +22,24 @@ export class PlayerRepository {
     });
   }
 
-  async findAllUsersInRoomInDatabase(roomId: string) {
-    return await this.prisma.user.findMany({
+  async markPlayerFoldAndEnableTurn(roomId: string, name: string) {
+    return await this.prisma.user.updateMany({
       where: {
         roomId: roomId,
-      },
-    });
-  }
-
-  async findUserByNameAndRoomIdInDatabase(name: string, roomId: string) {
-    return await this.prisma.user.findFirst({
-      where: {
         name: name,
-        roomId: roomId,
+      },
+      data: {
+        fold: true,
+        allIn: false,
+        makeTurn: true,
       },
     });
   }
 
-  async findUserByPositionAndRoomIdInDatabase(
-    position: number,
-    roomId: string,
-  ) {
-    return await this.prisma.user.findFirst({
-      where: {
-        position: position,
-        roomId: roomId,
-      },
+  async markPlayerFoldAndMakeTurn(roomId: string, name: string) {
+    return await this.prisma.user.updateMany({
+      where: { roomId: roomId, name: name },
+      data: { fold: true, makeTurn: true },
     });
   }
 

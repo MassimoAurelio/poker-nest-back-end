@@ -4,12 +4,6 @@ import { Injectable } from '@nestjs/common';
 export class GameRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAllPlayersInRoomInDatabase(roomId: string) {
-    return await this.prisma.user.findMany({
-      where: { roomId },
-    });
-  }
-
   async updatePlayerCardsInDatabase(playerId: string, cards: any[]) {
     return this.prisma.user.update({
       where: { id: playerId },
@@ -44,10 +38,13 @@ export class GameRepository {
   }
 
   async setCurrentPlayer(roomId: string, position: number) {
-    return await this.prisma.user.findFirst({
+    return await this.prisma.user.updateMany({
       where: {
         roomId: roomId,
         position: position,
+      },
+      data: {
+        currentPlayerId: true,
       },
     });
   }
