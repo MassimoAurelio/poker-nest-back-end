@@ -59,6 +59,22 @@ export class PlayerRepository {
     });
   }
 
+  async removeCurrentPlayer(name: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { name },
+    });
+    if (user) {
+      return await this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          currentPlayerId: false,
+        },
+      });
+    }
+  }
+
   async setCurrentPlayer(name: string) {
     const user = await this.prisma.user.findFirst({
       where: {

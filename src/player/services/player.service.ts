@@ -70,34 +70,50 @@ export class PlayerService {
     return allPlayers;
   }
 
-  async makeFold(name: string): Promise<any> {
+  async makeFold(roomId: string, name: string): Promise<any> {
+    const [foldPlayer, nextPlayer] = await Promise.all([
+      this.repository.makeFoldAndMakeTurnUserByName(name),
+      this.toNextPlayer(roomId),
+    ]);
+
+    return {
+      foldPlayer,
+      nextPlayer,
+    };
+  }
+
+  async toNextPlayer(roomId: string) {
+    const players: Array<any> =
+      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+
     const currentPlayer = await this.repository.findCurrentPlayer();
-    const foldPlayer =
-      await this.repository.makeFoldAndMakeTurnUserByName(name);
-    const allPlayers = await this.repository.findFoldPlayers();
+    if (!currentPlayer) {
+      throw new Error('Current player not found');
+    }
+
+    await this.repository.removeCurrentPlayer(currentPlayer.name);
 
     let nextTurn;
 
-    const maxPositionPlayer = allPlayers[0];
+    const playerMaxPosition = players[0];
 
-    if (currentPlayer.position === maxPositionPlayer.position) {
-      const nextPlayer = allPlayers.filter(
-        (player) => player.position > currentPlayer.position,
+    if (currentPlayer.position === playerMaxPosition.position) {
+      const nextPlayers = players.filter(
+        (player: any) => player.position > currentPlayer.position,
       );
-      nextTurn = nextPlayer.find((player) => !player.fold);
-    } else {
-      nextTurn = allPlayers.find(
-        (player) => player.position > currentPlayer.position && !player.fold,
-      );
+      nextTurn = nextPlayers.find((player) => !player.fold);
     }
 
     if (!nextTurn) {
-      nextTurn = allPlayers.find((player) => !player.fold);
+      nextTurn = players.find((p) => !p.fold);
     }
 
-    // Передаем правильное имя следующего игрока
-    await this.repository.setCurrentPlayer(nextTurn.name);
+    if (nextTurn) {
+      await this.repository.setCurrentPlayer(nextTurn.name);
+    } else {
+      throw new Error('No valid player found to pass the turn to');
+    }
 
-    return foldPlayer;
+    return nextTurn;
   }
 }
