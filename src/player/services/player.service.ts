@@ -71,45 +71,42 @@ export class PlayerService {
   }
 
   async makeFold(roomId: string, name: string): Promise<any> {
-    const [foldPlayer, nextPlayer] = await Promise.all([
-      this.repository.makeFoldAndMakeTurnUserByName(name),
-      this.toNextPlayer(roomId),
-    ]);
+    await this.prisma.$transaction(async (prisma) => {
+      await this.repository.makeFoldAndMakeTurnUserByName(name);
+      await this.toNextPlayer(roomId);
+    });
 
-    return {
-      foldPlayer,
-      nextPlayer,
-    };
+    // Повторный запрос данных после транзакции для гарантии актуальности
+    const foldPlayer =
+      await this.commonUserRepository.findUserByUserNameFromDatabase(name);
+    const nextPlayer = await this.repository.findCurrentPlayer();
+
+    return { foldPlayer, nextPlayer };
   }
 
   async toNextPlayer(roomId: string) {
-    const players: Array<any> =
+    const players =
       await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
-
     const currentPlayer = await this.repository.findCurrentPlayer();
-    if (!currentPlayer) {
-      throw new Error('Current player not found');
-    }
 
+    if (!currentPlayer) throw new Error('Current player not found');
     await this.repository.removeCurrentPlayer(currentPlayer.name);
 
     let nextTurn;
-
     const playerMaxPosition = players[0];
 
     if (currentPlayer.position === playerMaxPosition.position) {
       const nextPlayers = players.filter(
-        (player: any) => player.position > currentPlayer.position,
+        (player) => player.position > currentPlayer.position,
       );
       nextTurn = nextPlayers.find((player) => !player.fold);
     }
 
-    if (!nextTurn) {
-      nextTurn = players.find((p) => !p.fold);
-    }
+    if (!nextTurn) nextTurn = players.find((p) => !p.fold);
 
     if (nextTurn) {
       await this.repository.setCurrentPlayer(nextTurn.name);
+      nextTurn = await this.repository.findCurrentPlayer();
     } else {
       throw new Error('No valid player found to pass the turn to');
     }
