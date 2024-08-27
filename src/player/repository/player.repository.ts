@@ -63,12 +63,38 @@ export class PlayerRepository {
     roomId: string,
     name: string,
     action: (name: string) => Promise<void>,
-    toNextPlayer: (roomId: string) => Promise<any>,
+    toNextPlayer: (roomId: string) => Promise<void>,
   ): Promise<void> {
     await this.prisma.$transaction(async (prisma) => {
       await action(name);
       await toNextPlayer(roomId);
     });
+  }
+
+  async changeUserViaUpdateData(name: string, updateData: any): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { name: name },
+    });
+
+    if (user) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: updateData,
+      });
+    }
+  }
+
+  async updateUserMakeTurnAllIn(roomId: string, name: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { name: name },
+    });
+
+    if (user) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { allIn: true, makeTurn: true },
+      });
+    }
   }
 
   async findCurrentPlayer() {

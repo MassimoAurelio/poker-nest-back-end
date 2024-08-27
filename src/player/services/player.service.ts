@@ -85,6 +85,112 @@ export class PlayerService {
     return { foldPlayer, nextPlayer };
   }
 
+  //Логика Рейза
+  async makeRaise(
+    roomId: string,
+    name: string,
+    raiseAmount: number,
+  ): Promise<{ raisePlayer: any; nextPlayer: any }> {
+    const bB = 50;
+
+    const players =
+      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+    const player =
+      await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
+        roomId,
+        name,
+      );
+
+    if (!player) throw new Error(`Игрок ${name} не найден`);
+
+    const lastBigBet = players.reduce(
+      (minBet, current) =>
+        current.lastBet > minBet.lastBet ? current : minBet,
+      players[0],
+    );
+
+    const minRaise = lastBigBet.lastBet + bB;
+
+    if (raiseAmount < minRaise) {
+      throw new Error(`Raise amount must be at least ${minRaise}`);
+    }
+
+    if (raiseAmount > player.stack + player.lastBet) {
+      throw new Error('Not enough funds to raise');
+    }
+
+    const updateData: any = {
+      stack: {
+        decrement: raiseAmount,
+      },
+      makeTurn: true,
+      lastBet: raiseAmount,
+    };
+
+    const additionalStack =
+      player.position === 1 ? 25 : player.position === 2 ? 50 : 0;
+
+    switch (player.roundStage) {
+      case 'preflop':
+        updateData.preFlopLastBet = {
+          increment: raiseAmount - additionalStack,
+        };
+        if (player.position === 1) {
+          updateData.stack = {
+            increment: 25,
+          };
+        } else if (player.position === 2) {
+          updateData.stack = {
+            increment: 50,
+          };
+        }
+        break;
+      case 'flop':
+        updateData.flopLastBet = {
+          increment: raiseAmount,
+        };
+        break;
+      case 'turn':
+        updateData.turnLastBet = {
+          increment: raiseAmount,
+        };
+        break;
+      case 'river':
+        updateData.riverLastBet = {
+          increment: raiseAmount,
+        };
+        break;
+      default:
+        throw new Error('Unknown stage of the game');
+    }
+
+    await this.repository.makeDoubleTransaction(
+      roomId,
+      name,
+      async (name: string) => {
+        await this.repository.changeUserViaUpdateData(name, updateData);
+      },
+      async (roomId: string) => {
+        await this.toNextPlayer(roomId);
+      },
+    );
+
+    const raisePlayer =
+      await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
+        roomId,
+        name,
+      );
+
+    if (raisePlayer.stack === 0) {
+      await this.repository.updateUserMakeTurnAllIn(roomId, name);
+    }
+
+    const nextPlayer = await this.repository.findCurrentPlayer();
+
+    return { raisePlayer, nextPlayer };
+  }
+
+  //Логика чека
   async makeCheck(roomId: string, name: string): Promise<any> {
     const player =
       await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(

@@ -70,15 +70,24 @@ export class PlayerGateWay
     const [roomId, name] = data;
     try {
       const checkPlayer = await this.service.makeCheck(roomId, name);
-
       this.server.emit('checkPlayer', checkPlayer);
     } catch (error) {
       this.server.emit('checkPlayerError', error.message);
     }
   }
-  @SubscribeMessage('nextPlayer')
-  async handleNextPlayer(@MessageBody() roomId: string) {
-    const nextPlayer = await this.service.toNextPlayer(roomId);
-    this.server.emit('playerNext', nextPlayer);
+
+  @SubscribeMessage('raise')
+  async handleRaisePlayer(@MessageBody() data: [string, string, number]) {
+    const [roomId, name, raiseAmount] = data;
+    try {
+      const raisePlayer = await this.service.makeRaise(
+        roomId,
+        name,
+        raiseAmount,
+      );
+      this.server.emit('raisePlayer', raisePlayer);
+    } catch (error) {
+      this.server.emit('raisePlayerError', error.message);
+    }
   }
 }
