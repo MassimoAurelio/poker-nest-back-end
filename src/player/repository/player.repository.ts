@@ -22,6 +22,14 @@ export class PlayerRepository {
     });
   }
 
+  async findLastBigBet() {
+    return await this.prisma.user.findFirst({
+      orderBy: {
+        lastBet: 'desc',
+      },
+    });
+  }
+
   async makeFoldAndMakeTurnUserByName(name: string) {
     const user = await this.prisma.user.findUnique({
       where: { name },
@@ -48,6 +56,18 @@ export class PlayerRepository {
       orderBy: {
         position: 'asc',
       },
+    });
+  }
+
+  async makeDoubleTransaction(
+    roomId: string,
+    name: string,
+    action: (name: string) => Promise<void>,
+    toNextPlayer: (roomId: string) => Promise<any>,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (prisma) => {
+      await action(name);
+      await toNextPlayer(roomId);
     });
   }
 

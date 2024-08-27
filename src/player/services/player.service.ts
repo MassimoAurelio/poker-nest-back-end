@@ -71,17 +71,57 @@ export class PlayerService {
   }
 
   async makeFold(roomId: string, name: string): Promise<any> {
-    await this.prisma.$transaction(async (prisma) => {
-      await this.repository.makeFoldAndMakeTurnUserByName(name);
-      await this.toNextPlayer(roomId);
-    });
+    await this.repository.makeDoubleTransaction(
+      roomId,
+      name,
+      this.repository.makeFoldAndMakeTurnUserByName.bind(this.repository),
+      this.toNextPlayer.bind(this),
+    );
 
-    // Повторный запрос данных после транзакции для гарантии актуальности
     const foldPlayer =
       await this.commonUserRepository.findUserByUserNameFromDatabase(name);
     const nextPlayer = await this.repository.findCurrentPlayer();
 
     return { foldPlayer, nextPlayer };
+  }
+
+  async makeCheck(roomId: string, name: string): Promise<any> {
+    const player =
+      await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
+        roomId,
+        name,
+      );
+
+    if (!player) {
+      throw new Error('Player not found in the specified room.');
+    }
+
+    await this.repository.makeDoubleTransaction(
+      roomId,
+      name,
+      this.commonUserRepository.setMakeTurnUser.bind(this.repository),
+      this.toNextPlayer.bind(this),
+    );
+
+    const сheckPlayer =
+      await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
+        roomId,
+        name,
+      );
+    if (!сheckPlayer) {
+      throw new Error('Updated player not found in the specified room.');
+    }
+
+    const lastBigBetUser = await this.repository.findLastBigBet();
+
+    if (lastBigBetUser.lastBet !== сheckPlayer.lastBet) {
+      throw new Error(
+        "Player's last bet does not match the current highest bet.",
+      );
+    }
+    const nextPlayer = await this.repository.findCurrentPlayer();
+
+    return { сheckPlayer, nextPlayer };
   }
 
   async toNextPlayer(roomId: string) {

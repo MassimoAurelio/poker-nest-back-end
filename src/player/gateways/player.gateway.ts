@@ -65,6 +65,17 @@ export class PlayerGateWay
     this.server.emit('foldPlayer', foldPlayer);
   }
 
+  @SubscribeMessage('check')
+  async handleCheckPlayer(@MessageBody() data: [string, string]) {
+    const [roomId, name] = data;
+    try {
+      const checkPlayer = await this.service.makeCheck(roomId, name);
+
+      this.server.emit('checkPlayer', checkPlayer);
+    } catch (error) {
+      this.server.emit('checkPlayerError', error.message);
+    }
+  }
   @SubscribeMessage('nextPlayer')
   async handleNextPlayer(@MessageBody() roomId: string) {
     const nextPlayer = await this.service.toNextPlayer(roomId);

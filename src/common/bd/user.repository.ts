@@ -20,11 +20,11 @@ export class CommonUserRepository {
     });
   }
 
-  async findUserByNameAndRoomIdInDatabase(name: string, roomId: string) {
+  async findUserByNameAndRoomIdInDatabase(roomId: string, name: string) {
     return await this.prisma.user.findFirst({
       where: {
-        name: name,
         roomId: roomId,
+        name: name,
       },
     });
   }
@@ -48,5 +48,23 @@ export class CommonUserRepository {
         allIn: true,
       },
     });
+  }
+
+  async setMakeTurnUser(name: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        name: name,
+      },
+    });
+    if (user) {
+      return await this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          makeTurn: true,
+        },
+      });
+    }
   }
 }
