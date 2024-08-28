@@ -1,4 +1,5 @@
 import { CommonUserRepository } from '@/src/common/bd/user.repository';
+import { GameDto } from '@/src/game/dto/game.dto';
 import { dealCards, shuffleDeck } from '@/src/game/utils/game.cards';
 import { Injectable } from '@nestjs/common';
 import { GameRepository } from '../repositories/game.repository';
@@ -21,31 +22,33 @@ export class GameService {
     updatePosition: false,
   };
 
-  async dealFlopCards(roomId: string): Promise<any> {
+  async dealFlopCards(gameDto: GameDto): Promise<any> {
+    const { roomId } = gameDto;
     if (this.tableCards.length >= 3) {
       throw new Error('tableCards>= 3');
     }
 
-    await this.commonUserRepository.refreshCurrentPlayerIdToFalseAllUsersInRoom(
-      roomId,
-    );
+    await this.commonUserRepository.resetCurrentPlayerIdInRoom(roomId);
 
     const players =
-      await this.commonUserRepository.findAllPlayersWhoDontMakeFold(roomId);
-    await this.clearTable();
+      await this.commonUserRepository.findAllNonFoldPlayers(roomId);
     await this.handleDealFlop();
     const lastCurrentPlayer = players.find(
       (player) => player.currentPlayerId === true,
     );
 
     if (lastCurrentPlayer) {
-      await this.commonUserRepository.removeCurrentPlayer(
+      await this.commonUserRepository.setCurrentPlayerByName(
         lastCurrentPlayer.name,
+        false,
       );
     }
 
-    const bbPlayer = await this.commonUserRepository.findBbPlayer(roomId);
-    await this.commonUserRepository.refreshLastBetInAllUsersInRoom(roomId);
+    const bbPlayer = await this.commonUserRepository.findPlayerByPosition(
+      roomId,
+      2,
+    );
+    await this.commonUserRepository.resetLastBetInRoom(roomId);
 
     if (!bbPlayer) {
       throw new Error('The player on the big blind has not been found');
@@ -57,7 +60,10 @@ export class GameService {
         : minPlayer;
     }, players[0]);
 
-    await this.commonUserRepository.setCurrentPlayerByName(minPlayer.name);
+    await this.commonUserRepository.setCurrentPlayerByName(
+      minPlayer.name,
+      false,
+    );
 
     await this.gameRepository.updateAllInRoomToMakeTurnFalseAndRoundStageToFlop(
       roomId,
@@ -78,13 +84,15 @@ export class GameService {
     this.tableCards.push(...flopCards);
   }
 
-  async getActivePlayers(roomId: string) {
+  async getActivePlayers(gameDto: GameDto) {
+    const { roomId } = gameDto;
     const activePlayers =
-      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+      await this.commonUserRepository.findAllUsersInRoom(roomId);
     return activePlayers;
   }
 
-  async startNewRound(roomId: string) {
+  async startNewRound(gameDto: GameDto) {
+    const { roomId } = gameDto;
     await this.gameRepository.fullUpdateAllUsers(roomId);
 
     await this.gameRepository.setCurrentPlayer(roomId, 3);
@@ -99,19 +107,20 @@ export class GameService {
     if (bbPlayer && bbPlayer.stack < 0) {
       await this.gameRepository.setFoldInSbPlayer(roomId);
     }
-    await this.startCardDistribution(roomId);
+    await this.startCardDistribution(gameDto);
     const updatedPlayers =
-      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+      await this.commonUserRepository.findAllUsersInRoom(roomId);
 
     return updatedPlayers;
   }
 
-  async startCardDistribution(roomId: string): Promise<any[]> {
+  async startCardDistribution(gameDto: GameDto): Promise<any[]> {
+    const { roomId } = gameDto;
     try {
       const deck = shuffleDeck();
 
       const players =
-        await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+        await this.commonUserRepository.findAllUsersInRoom(roomId);
 
       this.deckWithoutPlayerCards = [];
       this.playerCards = [];
@@ -124,7 +133,7 @@ export class GameService {
       await Promise.all(updatePromises);
 
       const updatedPlayers =
-        await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+        await this.commonUserRepository.findAllUsersInRoom(roomId);
 
       return updatedPlayers;
     } catch (error) {

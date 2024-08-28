@@ -17,11 +17,10 @@ export class PlayerService {
     const { name, position, stack, roomId } = joinTableDto;
 
     try {
-      const user =
-        await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
-          name,
-          roomId,
-        );
+      const user = await this.commonUserRepository.findUserByNameAndRoomId(
+        name,
+        roomId,
+      );
       if (user) {
         socket.emit('createPlayerError', {
           message: 'User already exists in the room',
@@ -30,7 +29,7 @@ export class PlayerService {
       }
 
       const userInThisPosition =
-        await this.commonUserRepository.findUserByPositionAndRoomIdInDatabase(
+        await this.commonUserRepository.findUserByPositionAndRoomId(
           position,
           roomId,
         );
@@ -64,9 +63,10 @@ export class PlayerService {
     return { name, roomId };
   }
 
-  async getUsers(roomId: string) {
+  async getUsers(joinTableDto: JoinTableDto) {
+    const { roomId } = joinTableDto;
     const allPlayers =
-      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+      await this.commonUserRepository.findAllUsersInRoom(roomId);
     return allPlayers;
   }
 
@@ -78,8 +78,7 @@ export class PlayerService {
       this.toNextPlayer.bind(this),
     );
 
-    const foldPlayer =
-      await this.commonUserRepository.findUserByUserNameFromDatabase(name);
+    const foldPlayer = await this.commonUserRepository.findUserByName(name);
     const nextPlayer = await this.repository.findCurrentPlayer();
 
     return { foldPlayer, nextPlayer };
@@ -88,17 +87,16 @@ export class PlayerService {
   //Логика колл
   async coll(roomId: string, name: string): Promise<any> {
     try {
-      const player =
-        await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
-          roomId,
-          name,
-        );
+      const player = await this.commonUserRepository.findUserByNameAndRoomId(
+        roomId,
+        name,
+      );
       if (!player) {
         throw new Error('User not found');
       }
 
       const players =
-        await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+        await this.commonUserRepository.findAllUsersInRoom(roomId);
       if (players.length === 0) {
         throw new Error('No users found');
       }
@@ -175,10 +173,7 @@ export class PlayerService {
 
       const nextPlayer = await this.toNextPlayer(roomId);
       const collPlayer =
-        await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
-          roomId,
-          name,
-        );
+        await this.commonUserRepository.findUserByNameAndRoomId(roomId, name);
 
       if (collPlayer.stack === 0) {
         await this.commonUserRepository.updateUserByName(player.id, {
@@ -204,13 +199,11 @@ export class PlayerService {
   ): Promise<{ raisePlayer: any; nextPlayer: any }> {
     const bB = 50;
 
-    const players =
-      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
-    const player =
-      await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
-        roomId,
-        name,
-      );
+    const players = await this.commonUserRepository.findAllUsersInRoom(roomId);
+    const player = await this.commonUserRepository.findUserByNameAndRoomId(
+      roomId,
+      name,
+    );
 
     if (!player) throw new Error(`Игрок ${name} не найден`);
 
@@ -286,11 +279,10 @@ export class PlayerService {
       },
     );
 
-    const raisePlayer =
-      await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
-        roomId,
-        name,
-      );
+    const raisePlayer = await this.commonUserRepository.findUserByNameAndRoomId(
+      roomId,
+      name,
+    );
 
     if (raisePlayer.stack === 0) {
       await this.repository.updateUserMakeTurnAllIn(roomId, name);
@@ -303,11 +295,10 @@ export class PlayerService {
 
   //Логика чека
   async makeCheck(roomId: string, name: string): Promise<any> {
-    const player =
-      await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
-        roomId,
-        name,
-      );
+    const player = await this.commonUserRepository.findUserByNameAndRoomId(
+      roomId,
+      name,
+    );
 
     if (!player) {
       throw new Error('Player not found in the specified room.');
@@ -316,15 +307,14 @@ export class PlayerService {
     await this.repository.makeDoubleTransaction(
       roomId,
       name,
-      this.commonUserRepository.setMakeTurnUser.bind(this.repository),
+      this.commonUserRepository.setMakeTurnUser.bind(this.commonUserRepository),
       this.toNextPlayer.bind(this),
     );
 
-    const сheckPlayer =
-      await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
-        roomId,
-        name,
-      );
+    const сheckPlayer = await this.commonUserRepository.findUserByNameAndRoomId(
+      roomId,
+      name,
+    );
     if (!сheckPlayer) {
       throw new Error('Updated player not found in the specified room.');
     }
@@ -342,12 +332,14 @@ export class PlayerService {
   }
 
   async toNextPlayer(roomId: string) {
-    const players =
-      await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+    const players = await this.commonUserRepository.findAllUsersInRoom(roomId);
     const currentPlayer = await this.repository.findCurrentPlayer();
 
     if (!currentPlayer) throw new Error('Current player not found');
-    await this.commonUserRepository.removeCurrentPlayer(currentPlayer.name);
+    await this.commonUserRepository.setCurrentPlayerByName(
+      currentPlayer.name,
+      false,
+    );
 
     let nextTurn;
     const playerMaxPosition = players[0];

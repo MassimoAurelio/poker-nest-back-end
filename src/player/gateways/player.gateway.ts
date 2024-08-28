@@ -53,8 +53,8 @@ export class PlayerGateWay
   }
 
   @SubscribeMessage('givePlayers')
-  async handleGiveAllPlayers(@MessageBody() roomId: string) {
-    const findAllPlayers = await this.service.getUsers(roomId);
+  async handleGiveAllPlayers(@MessageBody() joinTableDto: JoinTableDto) {
+    const findAllPlayers = await this.service.getUsers(joinTableDto);
     this.server.emit('getUsers', findAllPlayers);
   }
 

@@ -26,4 +26,8 @@ export class JoinTableDto {
   @IsNotEmpty()
   @IsString()
   roomId: string;
+
+  @IsOptional()
+  @IsNumber()
+  raiseAmount: number;
 }

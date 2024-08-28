@@ -17,15 +17,14 @@ export class GameGateway {
 
   @SubscribeMessage('startRound')
   async handleStartRound(@MessageBody() gameDto: GameDto) {
-    const { roomId } = gameDto;
-    const updatePlayers = await this.cardsService.startNewRound(roomId);
+    const updatePlayers = await this.cardsService.startNewRound(gameDto);
     this.server.emit('start', updatePlayers);
   }
 
   @SubscribeMessage('flop')
-  async handleDealFlop(@MessageBody() data: [string]) {
-    const [roomId] = data;
-    const tableCards = await this.cardsService.dealFlopCards(roomId);
+  async handleDealFlop(@MessageBody() gameDto: GameDto) {
+    await this.cardsService.clearTable();
+    const tableCards = await this.cardsService.dealFlopCards(gameDto);
     this.server.emit('dealFlop', { flop: { tableCards } });
   }
 }
