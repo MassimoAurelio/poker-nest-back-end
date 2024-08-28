@@ -90,4 +90,15 @@ export class PlayerGateWay
       this.server.emit('raisePlayerError', error.message);
     }
   }
+
+  @SubscribeMessage('coll')
+  async handleCollPlayer(@MessageBody() data: [string, string]) {
+    const [roomId, name] = data;
+    try {
+      const collPlayer = await this.service.coll(roomId, name);
+      this.server.emit('collPlayer', collPlayer);
+    } catch (error) {
+      this.server.emit('collPlayerError', error.message);
+    }
+  }
 }

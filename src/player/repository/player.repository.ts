@@ -97,6 +97,28 @@ export class PlayerRepository {
     }
   }
 
+  async updateUser(
+    name: string,
+    actualCallAmount: number,
+    updateFields: { [key: string]: any },
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        name: name,
+      },
+    });
+    if (user) {
+      return await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          stack: { decrement: actualCallAmount },
+          lastBet: user.lastBet + actualCallAmount,
+          ...updateFields,
+        },
+      });
+    }
+  }
+
   async findCurrentPlayer() {
     return await this.prisma.user.findFirst({
       where: {

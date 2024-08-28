@@ -50,6 +50,20 @@ export class CommonUserRepository {
     });
   }
 
+  async updateUserByName(name: string, updateData: { [key: string]: any }) {
+    const user = await this.prisma.user.findUnique({
+      where: { name: name },
+    });
+
+    if (user) {
+      return await this.prisma.user.update({
+        where: { id: user.id },
+        data: updateData,
+      });
+    }
+    return null;
+  }
+
   async setMakeTurnUser(name: string) {
     const user = await this.prisma.user.findUnique({
       where: {

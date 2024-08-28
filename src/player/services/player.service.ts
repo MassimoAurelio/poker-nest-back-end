@@ -85,6 +85,117 @@ export class PlayerService {
     return { foldPlayer, nextPlayer };
   }
 
+  //Логика колл
+  async coll(roomId: string, name: string): Promise<any> {
+    try {
+      const player =
+        await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
+          roomId,
+          name,
+        );
+      if (!player) {
+        throw new Error('User not found');
+      }
+
+      const players =
+        await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
+      if (players.length === 0) {
+        throw new Error('No users found');
+      }
+
+      await this.commonUserRepository.setMakeTurnUser(player.id);
+
+      const allInPlayers = players.filter((p) => p.allIn);
+
+      const currentRoundStage = player.roundStage;
+
+      const maxPreflopLastBet = players.reduce((a, b) =>
+        a.preFlopLastBet > b.preFlopLastBet ? a : b,
+      );
+      const maxFlopLastBet = players.reduce((a, b) =>
+        a.flopLastBet > b.flopLastBet ? a : b,
+      );
+      const maxTurnLastBet = players.reduce((a, b) =>
+        a.turnLastBet > b.turnLastBet ? a : b,
+      );
+      const maxRiverLastBet = players.reduce((a, b) =>
+        a.riverLastBet > b.riverLastBet ? a : b,
+      );
+
+      const stageBetFields = {
+        preflop: 'preFlopLastBet',
+        flop: 'flopLastBet',
+        turn: 'turnLastBet',
+        river: 'riverLastBet',
+      };
+
+      const maxBets = {
+        preflop: maxPreflopLastBet,
+        flop: maxFlopLastBet,
+        turn: maxTurnLastBet,
+        river: maxRiverLastBet,
+      };
+
+      if (!(currentRoundStage in stageBetFields)) {
+        throw new Error('Invalid game stage');
+      }
+
+      const bet = maxBets[currentRoundStage][stageBetFields[currentRoundStage]];
+
+      if (bet === 0) {
+        throw new Error('No previous bets to call');
+      }
+
+      const callAmount = bet - player.lastBet;
+      if (callAmount === 0) {
+        return 'Player has already matched the highest bet';
+      }
+
+      let actualCallAmount = callAmount;
+      if (player.stack < callAmount) {
+        actualCallAmount = player.stack;
+      }
+
+      const updateField =
+        currentRoundStage in stageBetFields
+          ? {
+              [stageBetFields[currentRoundStage]]:
+                player.lastBet + actualCallAmount,
+            }
+          : {};
+
+      await this.prisma.user.update({
+        where: { id: player.id },
+        data: {
+          stack: { decrement: actualCallAmount },
+          lastBet: player.lastBet + actualCallAmount,
+          ...updateField,
+        },
+      });
+
+      const nextPlayer = await this.toNextPlayer(roomId);
+      const collPlayer =
+        await this.commonUserRepository.findUserByNameAndRoomIdInDatabase(
+          roomId,
+          name,
+        );
+
+      if (collPlayer.stack === 0) {
+        await this.commonUserRepository.updateUserByName(player.id, {
+          allIn: true,
+        });
+      } else if (allInPlayers.length > 0 && player.stack >= actualCallAmount) {
+        await this.commonUserRepository.updateUserByName(player.id, {
+          allInColl: true,
+        });
+      }
+
+      return { collPlayer, nextPlayer };
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
   //Логика Рейза
   async makeRaise(
     roomId: string,
