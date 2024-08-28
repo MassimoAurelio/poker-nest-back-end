@@ -24,7 +24,19 @@ export class GameGateway {
   @SubscribeMessage('flop')
   async handleDealFlop(@MessageBody() gameDto: GameDto) {
     await this.cardsService.clearTable();
-    const tableCards = await this.cardsService.dealFlopCards(gameDto);
-    this.server.emit('dealFlop', { flop: { tableCards } });
+    const cards = await this.cardsService.dealFlopCards(gameDto);
+    this.server.emit('dealFlop', cards);
+  }
+
+  @SubscribeMessage('turn')
+  async handleDealTurn(@MessageBody() gameDto: GameDto) {
+    const tableCards = await this.cardsService.dealTurnCard(gameDto);
+    this.server.emit('dealTurn', tableCards);
+  }
+
+  @SubscribeMessage('river')
+  async handleDealRiver(@MessageBody() gameDto: GameDto) {
+    const tableCards = await this.cardsService.dealRiverCards(gameDto);
+    this.server.emit('dealRiver', tableCards);
   }
 }

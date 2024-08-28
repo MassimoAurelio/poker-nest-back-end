@@ -10,6 +10,9 @@ import {
 export class JoinTableDto {
   @IsNotEmpty()
   @IsString()
+  roomId: string;
+  @IsNotEmpty()
+  @IsString()
   name: string;
 
   @IsNotEmpty()
@@ -22,10 +25,6 @@ export class JoinTableDto {
   @IsNumber()
   @Min(0)
   stack: number;
-
-  @IsNotEmpty()
-  @IsString()
-  roomId: string;
 
   @IsOptional()
   @IsNumber()

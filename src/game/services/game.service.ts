@@ -71,7 +71,80 @@ export class GameService {
 
     return this.tableCards;
   }
+  //////
+  async dealTurnCard(gameDto: GameDto): Promise<any> {
+    const { roomId } = gameDto;
+    if (this.tableCards.length >= 4) {
+      throw new Error('tableCards>= 4');
+    }
 
+    const players =
+      await this.commonUserRepository.findAllNonFoldPlayers(roomId);
+    await this.handleDealOneCard();
+
+    await this.commonUserRepository.resetLastBetInRoom(roomId);
+
+    const minPlayer = players.reduce((minPlayer, currentPlayer) => {
+      return currentPlayer.position < minPlayer.position
+        ? currentPlayer
+        : minPlayer;
+    }, players[0]);
+
+    const lastCurrentPlayer = players.find(
+      (player) => player.currentPlayerId === true,
+    );
+
+    if (lastCurrentPlayer) {
+      await this.commonUserRepository.setCurrentPlayerByName(
+        lastCurrentPlayer.name,
+        false,
+      );
+    }
+
+    await this.commonUserRepository.setCurrentPlayerByName(
+      minPlayer.name,
+      true,
+    );
+
+    await this.gameRepository.updateAllInRoomToMakeTurnFalseAndRoundStageToTurn(
+      roomId,
+    );
+    return this.tableCards;
+  }
+
+  async dealRiverCards(gameDto: GameDto): Promise<any> {
+    const { roomId } = gameDto;
+    if (this.tableCards.length >= 5) {
+      throw new Error('tableCards>= 5');
+    }
+    const players =
+      await this.commonUserRepository.findAllNonFoldPlayers(roomId);
+    await this.handleDealOneCard();
+    await this.commonUserRepository.resetLastBetInRoom(roomId);
+    const minPlayer = players.reduce((minPlayer, currentPlayer) =>
+      currentPlayer.position < minPlayer.position ? currentPlayer : minPlayer,
+    );
+
+    const lastCurrentPlayer = players.find((player) => player.currentPlayerId);
+    if (lastCurrentPlayer) {
+      await this.commonUserRepository.setCurrentPlayerByName(
+        lastCurrentPlayer.name,
+        false,
+      );
+    }
+    await this.commonUserRepository.setCurrentPlayerByName(
+      minPlayer.name,
+      true,
+    );
+
+    await this.gameRepository.updateAllInRoomToMakeTurnFalseAndRoundStageToRiver(
+      roomId,
+    );
+
+    return this.tableCards;
+  }
+
+  ////
   async clearTable() {
     this.tableCards.length = 0;
   }
@@ -81,6 +154,11 @@ export class GameService {
       throw new Error('Not enough cards in the deck to deal the flop');
     }
     const flopCards = this.deckWithoutPlayerCards.splice(0, 3);
+    this.tableCards.push(...flopCards);
+  }
+
+  async handleDealOneCard(): Promise<void> {
+    const flopCards = this.deckWithoutPlayerCards.splice(0, 1);
     this.tableCards.push(...flopCards);
   }
 

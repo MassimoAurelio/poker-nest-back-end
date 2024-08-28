@@ -36,7 +36,7 @@ export class GameRepository {
       },
     });
   }
-
+  //Нужно вынести в отдельный общий метод эти три метода ниже
   async updateAllInRoomToMakeTurnFalseAndRoundStageToFlop(roomId: string) {
     return await this.prisma.user.updateMany({
       where: {
@@ -49,10 +49,29 @@ export class GameRepository {
     });
   }
 
-  /* await User.updateMany(
-    {},
-    { $set: { makeTurn: false, roundStage: 'flop' } }
-  ) */
+  async updateAllInRoomToMakeTurnFalseAndRoundStageToTurn(roomId: string) {
+    return await this.prisma.user.updateMany({
+      where: {
+        roomId: roomId,
+      },
+      data: {
+        makeTurn: false,
+        roundStage: 'turn',
+      },
+    });
+  }
+
+  async updateAllInRoomToMakeTurnFalseAndRoundStageToRiver(roomId: string) {
+    return await this.prisma.user.updateMany({
+      where: {
+        roomId: roomId,
+      },
+      data: {
+        makeTurn: false,
+        roundStage: 'river',
+      },
+    });
+  }
 
   async setCurrentPlayer(roomId: string, position: number) {
     return await this.prisma.user.updateMany({
