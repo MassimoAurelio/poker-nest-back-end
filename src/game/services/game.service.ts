@@ -10,6 +10,74 @@ export class GameService {
     private readonly commonUserRepository: CommonUserRepository,
   ) {}
 
+  private tableCards = [];
+  private deckWithoutPlayerCards = [];
+  private playerCards = [];
+  private roomStates = {};
+  private gameState = {
+    shouldDealFlop: false,
+    shouldDealTurn: false,
+    shouldDealRiver: false,
+    updatePosition: false,
+  };
+
+  async dealFlopCards(roomId: string): Promise<any> {
+    if (this.tableCards.length >= 3) {
+      throw new Error('tableCards>= 3');
+    }
+
+    await this.commonUserRepository.refreshCurrentPlayerIdToFalseAllUsersInRoom(
+      roomId,
+    );
+
+    const players =
+      await this.commonUserRepository.findAllPlayersWhoDontMakeFold(roomId);
+    await this.clearTable();
+    await this.handleDealFlop();
+    const lastCurrentPlayer = players.find(
+      (player) => player.currentPlayerId === true,
+    );
+
+    if (lastCurrentPlayer) {
+      await this.commonUserRepository.removeCurrentPlayer(
+        lastCurrentPlayer.name,
+      );
+    }
+
+    const bbPlayer = await this.commonUserRepository.findBbPlayer(roomId);
+    await this.commonUserRepository.refreshLastBetInAllUsersInRoom(roomId);
+
+    if (!bbPlayer) {
+      throw new Error('The player on the big blind has not been found');
+    }
+
+    const minPlayer = players.reduce((minPlayer, currentPlayer) => {
+      return currentPlayer.position < minPlayer.position
+        ? currentPlayer
+        : minPlayer;
+    }, players[0]);
+
+    await this.commonUserRepository.setCurrentPlayerByName(minPlayer.name);
+
+    await this.gameRepository.updateAllInRoomToMakeTurnFalseAndRoundStageToFlop(
+      roomId,
+    );
+
+    return this.tableCards;
+  }
+
+  async clearTable() {
+    this.tableCards.length = 0;
+  }
+
+  async handleDealFlop(): Promise<void> {
+    if (this.deckWithoutPlayerCards.length < 3) {
+      throw new Error('Not enough cards in the deck to deal the flop');
+    }
+    const flopCards = this.deckWithoutPlayerCards.splice(0, 3);
+    this.tableCards.push(...flopCards);
+  }
+
   async getActivePlayers(roomId: string) {
     const activePlayers =
       await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
@@ -45,11 +113,11 @@ export class GameService {
       const players =
         await this.commonUserRepository.findAllUsersInRoomInDatabase(roomId);
 
-      let playerCards = [];
-      let deckWithoutPlayerCards = [];
-      dealCards(deck, players, playerCards, deckWithoutPlayerCards);
+      this.deckWithoutPlayerCards = [];
+      this.playerCards = [];
+      dealCards(deck, players, this.playerCards, this.deckWithoutPlayerCards);
 
-      const updatePromises = playerCards.map(({ playerId, cards }) =>
+      const updatePromises = this.playerCards.map(({ playerId, cards }) =>
         this.gameRepository.updatePlayerCardsInDatabase(playerId, cards),
       );
 

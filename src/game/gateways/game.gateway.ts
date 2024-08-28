@@ -21,4 +21,11 @@ export class GameGateway {
     const updatePlayers = await this.cardsService.startNewRound(roomId);
     this.server.emit('start', updatePlayers);
   }
+
+  @SubscribeMessage('flop')
+  async handleDealFlop(@MessageBody() data: [string]) {
+    const [roomId] = data;
+    const tableCards = await this.cardsService.dealFlopCards(roomId);
+    this.server.emit('dealFlop', { flop: { tableCards } });
+  }
 }

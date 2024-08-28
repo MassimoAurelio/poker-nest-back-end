@@ -37,6 +37,23 @@ export class GameRepository {
     });
   }
 
+  async updateAllInRoomToMakeTurnFalseAndRoundStageToFlop(roomId: string) {
+    return await this.prisma.user.updateMany({
+      where: {
+        roomId: roomId,
+      },
+      data: {
+        makeTurn: false,
+        roundStage: 'flop',
+      },
+    });
+  }
+
+  /* await User.updateMany(
+    {},
+    { $set: { makeTurn: false, roundStage: 'flop' } }
+  ) */
+
   async setCurrentPlayer(roomId: string, position: number) {
     return await this.prisma.user.updateMany({
       where: {

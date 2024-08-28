@@ -81,4 +81,76 @@ export class CommonUserRepository {
       });
     }
   }
+
+  async findAllPlayersWhoDontMakeFold(roomId: string) {
+    return await this.prisma.user.findMany({
+      where: {
+        fold: false,
+        roomId: roomId,
+      },
+    });
+  }
+
+  async refreshCurrentPlayerIdToFalseAllUsersInRoom(roomId: string) {
+    return await this.prisma.user.updateMany({
+      where: {
+        roomId: roomId,
+      },
+      data: {
+        currentPlayerId: false,
+      },
+    });
+  }
+
+  async refreshLastBetInAllUsersInRoom(roomId: string) {
+    return await this.prisma.user.updateMany({
+      where: {
+        roomId: roomId,
+      },
+      data: {
+        lastBet: 0,
+      },
+    });
+  }
+
+  async removeCurrentPlayer(name: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { name },
+    });
+    if (user) {
+      return await this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          currentPlayerId: false,
+        },
+      });
+    }
+  }
+
+  async setCurrentPlayerByName(name: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { name },
+    });
+    if (user) {
+      return await this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          currentPlayerId: false,
+        },
+      });
+    }
+  }
+
+  async findBbPlayer(roomId: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        roomId: roomId,
+        position: 2,
+      },
+    });
+  }
 }

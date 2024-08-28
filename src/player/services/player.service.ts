@@ -347,7 +347,7 @@ export class PlayerService {
     const currentPlayer = await this.repository.findCurrentPlayer();
 
     if (!currentPlayer) throw new Error('Current player not found');
-    await this.repository.removeCurrentPlayer(currentPlayer.name);
+    await this.commonUserRepository.removeCurrentPlayer(currentPlayer.name);
 
     let nextTurn;
     const playerMaxPosition = players[0];
