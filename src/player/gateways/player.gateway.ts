@@ -1,3 +1,4 @@
+import { GameStateService } from '@/src/common/services/game.state.service';
 import { Injectable } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -22,7 +23,10 @@ export class PlayerGateWay
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly service: PlayerService) {}
+  constructor(
+    private readonly service: PlayerService,
+    private readonly gameStateService: GameStateService,
+  ) {}
 
   afterInit(server: Server) {
     console.log('WebSocketGateway initialized');
@@ -39,11 +43,18 @@ export class PlayerGateWay
   @SubscribeMessage('createUser')
   async handleCreateUser(
     @ConnectedSocket() socket: Socket,
-    @MessageBody()
-    joinTableDto: JoinTableDto,
+    @MessageBody() joinTableDto: JoinTableDto,
   ) {
-    const newUser = await this.service.createPlayer(socket, joinTableDto);
-    this.server.emit('userCreated', newUser);
+    const { roomId } = joinTableDto;
+    console.log('Room ID:', roomId);
+    const newPlayer = await this.service.createPlayer(socket, joinTableDto);
+
+    this.gameStateService.addPlayer(roomId, newPlayer);
+
+    this.server.to(roomId).emit('userCreated', newPlayer);
+    this.server
+      .to(roomId)
+      .emit('gameStateUpdated', this.gameStateService.getState(roomId));
   }
 
   @SubscribeMessage('leaveUser')
@@ -54,8 +65,9 @@ export class PlayerGateWay
 
   @SubscribeMessage('givePlayers')
   async handleGiveAllPlayers(@MessageBody() joinTableDto: JoinTableDto) {
+    const { roomId } = joinTableDto;
     const findAllPlayers = await this.service.getUsers(joinTableDto);
-    this.server.emit('getUsers', findAllPlayers);
+    this.server.to(roomId).emit('getUsers', findAllPlayers);
   }
 
   @SubscribeMessage('fold')

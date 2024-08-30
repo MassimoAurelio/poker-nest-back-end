@@ -6,7 +6,7 @@ export class CommonUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAllUsersInRoom(roomId: string) {
-    return this.prisma.user.findMany({ where: { roomId } });
+    return this.prisma.user.findMany({ where: { roomId: roomId } });
   }
 
   async findUserByName(name: string) {
