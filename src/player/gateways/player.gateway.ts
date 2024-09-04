@@ -46,11 +46,7 @@ export class PlayerGateWay
     @MessageBody() joinTableDto: JoinTableDto,
   ) {
     const { roomId } = joinTableDto;
-    console.log('Room ID:', roomId);
     const newPlayer = await this.service.createPlayer(socket, joinTableDto);
-
-    this.gameStateService.addPlayer(roomId, newPlayer);
-
     this.server.to(roomId).emit('userCreated', newPlayer);
     this.server
       .to(roomId)

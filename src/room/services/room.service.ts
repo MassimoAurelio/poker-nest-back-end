@@ -24,7 +24,7 @@ export class RoomService {
       name,
       hashedPassword,
     );
-    return { roomId: newRoom.id };
+    return newRoom;
   }
 
   async enterRoom(roomDto: RoomDto) {
@@ -38,6 +38,6 @@ export class RoomService {
     if (!isPasswordValid) {
       throw new Error('Invalid password for the room');
     }
-    return { roomId: room.id };
+    return room;
   }
 }
