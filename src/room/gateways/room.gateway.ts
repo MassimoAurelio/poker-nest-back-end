@@ -17,19 +17,28 @@ export class RoomGateWay {
 
   constructor(private readonly roomService: RoomService) {}
 
-  /*  @SubscribeMessage('createRoom')
+  @SubscribeMessage('createRoom')
   async handleCreateRoom(@MessageBody() roomDto: RoomDto) {
     try {
       const newRoom = await this.roomService.createRoom(roomDto);
-      console.log('huy');
       this.server.emit('roomCreated', newRoom);
     } catch (error) {
       this.server.emit('roomCreationFailed', error.message);
     }
-  } */
+  }
 
-  @SubscribeMessage('createRoom')
-  async handleCreateRoom(@MessageBody() roomDto: RoomDto) {
-    console.log('Received data:', roomDto);
+  @SubscribeMessage('enterRoom')
+  async handleEnterRoom(@MessageBody() roomDto: RoomDto) {
+    try {
+      const enterRoom = await this.roomService.enterRoom(roomDto);
+      console.log('Room entered successfully:', enterRoom);
+      this.server.emit('roomEnter', enterRoom);
+    } catch (error) {
+      console.error('Error entering room:', error);
+      this.server.emit('roomEnterFailed', {
+        message: error.message,
+        stack: error.stack,
+      });
+    }
   }
 }
