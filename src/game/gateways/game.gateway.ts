@@ -39,4 +39,10 @@ export class GameGateway {
     const tableCards = await this.cardsService.dealRiverCards(gameDto);
     this.server.emit('dealRiver', tableCards);
   }
+
+  @SubscribeMessage('findWinner')
+  async handleFindWinner(@MessageBody() roomId: string) {
+    const winner = await this.cardsService.findWinner(roomId);
+    this.server.emit('winner', winner);
+  }
 }
