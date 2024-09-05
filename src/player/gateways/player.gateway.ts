@@ -45,12 +45,8 @@ export class PlayerGateWay
     @ConnectedSocket() socket: Socket,
     @MessageBody() joinTableDto: JoinTableDto,
   ) {
-    const { roomId } = joinTableDto;
     const newPlayer = await this.service.createPlayer(socket, joinTableDto);
-    this.server.to(roomId).emit('userCreated', newPlayer);
-    this.server
-      .to(roomId)
-      .emit('gameStateUpdated', this.gameStateService.getState(roomId));
+    this.server.emit('userCreated', newPlayer);
   }
 
   @SubscribeMessage('leaveUser')
@@ -61,9 +57,8 @@ export class PlayerGateWay
 
   @SubscribeMessage('givePlayers')
   async handleGiveAllPlayers(@MessageBody() joinTableDto: JoinTableDto) {
-    const { roomId } = joinTableDto;
     const findAllPlayers = await this.service.getUsers(joinTableDto);
-    this.server.to(roomId).emit('getUsers', findAllPlayers);
+    this.server.emit('getUsers', findAllPlayers);
   }
 
   @SubscribeMessage('fold')

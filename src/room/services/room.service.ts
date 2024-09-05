@@ -1,13 +1,17 @@
+import { CommonUserRepository } from '@/src/common/bd/user.repository';
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { RoomDto } from '../dto/room.dto';
 import { RoomRepository } from '../repositories/room.repository';
 @Injectable()
 export class RoomService {
-  constructor(private readonly roomRepository: RoomRepository) {}
+  constructor(
+    private readonly roomRepository: RoomRepository,
+    private readonly commonRepository: CommonUserRepository,
+  ) {}
 
   async roomInfo(roomId: string) {
-    const allUsers = await this.roomRepository.findUsersInRoom(roomId);
+    const allUsers = await this.commonRepository.findAllUsersInRoom(roomId);
     return allUsers;
   }
 

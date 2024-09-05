@@ -41,4 +41,10 @@ export class RoomGateWay {
       });
     }
   }
+
+  @SubscribeMessage('roomInfo')
+  async handleRoomInfo(@MessageBody() roomId: string) {
+    const roomInfo = await this.roomService.roomInfo(roomId);
+    this.server.emit('infoRoom', roomInfo);
+  }
 }
