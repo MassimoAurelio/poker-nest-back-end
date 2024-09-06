@@ -21,29 +21,20 @@ interface GameState {
 export class GameStateService {
   private gameState: Map<string, GameState> = new Map();
 
-  getState(roomId: string): GameState | undefined {
-    return this.gameState.get(roomId);
-  }
-
-  updateState(roomId: string, newState: GameState): void {
-    this.gameState.set(roomId, newState);
-  }
-
-  createState(roomId: string, initialState: GameState): void {
+  addPlayerToRoom(roomId: string, player: Player) {
     if (!this.gameState.has(roomId)) {
-      this.gameState.set(roomId, initialState);
+      this.gameState.set(roomId, { players: [] });
     }
+    const roomState = this.gameState.get(roomId)!;
+    roomState.players.push(player);
   }
 
-  addPlayer(roomId: string, newPlayer: Player): void {
-    const state = this.getState(roomId);
+  getPlayerFromRoom(roomId: string, playerId: string): Player | undefined {
+    const roomState = this.gameState.get(roomId);
+    return roomState?.players.find((p) => p.id === playerId);
+  }
 
-    if (!state) {
-      console.error(`Game state for roomId ${roomId} does not exist.`);
-      return;
-    }
-
-    state.players.push(newPlayer);
-    this.updateState(roomId, state);
+  getPlayersInRoom(roomId: string): Player[] {
+    return this.gameState.get(roomId)?.players || [];
   }
 }

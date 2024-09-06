@@ -10,6 +10,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+
 import { Server, Socket } from 'socket.io';
 import { JoinTableDto } from '../dto/joinTable.dto';
 import { RoomActionDto } from '../dto/roomAction.dto';
@@ -46,6 +47,7 @@ export class PlayerGateWay
     @MessageBody() joinTableDto: JoinTableDto,
   ) {
     const newPlayer = await this.service.createPlayer(socket, joinTableDto);
+    this.gameStateService.addPlayerToRoom(joinTableDto.roomId, newPlayer);
     this.server.emit('userCreated', newPlayer);
   }
 
