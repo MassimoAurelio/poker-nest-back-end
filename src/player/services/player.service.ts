@@ -342,16 +342,20 @@ export class PlayerService {
     );
 
     let nextTurn;
-    const playerMaxPosition = players[0];
+    const playersCount = players.length;
 
-    if (currentPlayer.position === playerMaxPosition.position) {
-      const nextPlayers = players.filter(
-        (player) => player.position > currentPlayer.position,
+    if (currentPlayer.position === playersCount) {
+      const minimalValidPlayer = players.reduce((a, b) =>
+        (!a || a.position > b.position) && !b.fold ? b : a,
       );
-      nextTurn = nextPlayers.find((player) => !player.fold);
-    }
+      nextTurn = minimalValidPlayer;
+    } else {
+      const nextActivePlayer = players.find(
+        (player) => player.position > 1 && player.stack > 0,
+      );
 
-    if (!nextTurn) nextTurn = players.find((p) => !p.fold);
+      nextTurn = nextActivePlayer;
+    }
 
     if (nextTurn) {
       await this.repository.setCurrentPlayer(nextTurn.name);
