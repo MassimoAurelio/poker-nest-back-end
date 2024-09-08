@@ -84,7 +84,6 @@ export class PlayerService {
     return { foldPlayer, nextPlayer };
   }
 
-  //Логика колл
   async coll(roomId: string, name: string): Promise<any> {
     try {
       const player = await this.commonUserRepository.findUserByNameAndRoomId(

@@ -41,8 +41,8 @@ export class GameGateway {
   }
 
   @SubscribeMessage('findWinner')
-  async handleFindWinner(@MessageBody() roomId: string) {
-    const winner = await this.cardsService.findWinner(roomId);
+  async handleFindWinner(@MessageBody() gameDto: GameDto) {
+    const winner = await this.cardsService.findWinner(gameDto);
     this.server.emit('winner', winner);
   }
 }

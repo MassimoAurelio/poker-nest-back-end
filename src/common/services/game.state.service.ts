@@ -1,3 +1,4 @@
+import { GameService } from '@/src/game/services/game.service';
 import { Injectable } from '@nestjs/common';
 interface Player {
   id: string;
@@ -20,8 +21,9 @@ interface GameState {
 @Injectable()
 export class GameStateService {
   private gameState: Map<string, GameState> = new Map();
+  constructor(private readonly cardsService: GameService) {}
 
-  addPlayerToRoom(roomId: string, player: Player) {
+  async addPlayerToRoom(roomId: string, player: Player) {
     if (!this.gameState.has(roomId)) {
       this.gameState.set(roomId, { players: [] });
     }
@@ -36,5 +38,9 @@ export class GameStateService {
 
   getPlayersInRoom(roomId: string): Player[] {
     return this.gameState.get(roomId)?.players || [];
+  }
+
+  getGameState(roomId: string): GameState | undefined {
+    return this.gameState.get(roomId);
   }
 }

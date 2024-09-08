@@ -1,4 +1,3 @@
-import { GameStateService } from '@/src/common/services/game.state.service';
 import { Injectable } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -25,8 +24,8 @@ export class PlayerGateWay
   server: Server;
 
   constructor(
-    private readonly service: PlayerService,
-    private readonly gameStateService: GameStateService,
+    private readonly service: PlayerService /* ,
+    private readonly gameStateService: GameStateService, */,
   ) {}
 
   afterInit(server: Server) {
@@ -47,7 +46,7 @@ export class PlayerGateWay
     @MessageBody() joinTableDto: JoinTableDto,
   ) {
     const newPlayer = await this.service.createPlayer(socket, joinTableDto);
-    this.gameStateService.addPlayerToRoom(joinTableDto.roomId, newPlayer);
+    /*  this.gameStateService.addPlayerToRoom(joinTableDto.roomId, newPlayer); */
     this.server.emit('userCreated', newPlayer);
   }
 
